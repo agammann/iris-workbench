@@ -1,0 +1,67 @@
+{
+  "at": "2026-09-15T03:04:33.585Z",
+  "checks": [
+    {
+      "label": "Import disposable certificate",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Certificate details read",
+      "keys": [
+        "OwnerList",
+        "CAFile",
+        "PeerNames"
+      ]
+    },
+    {
+      "label": "Create TLS configuration",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Create OAuth server definition",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "OAuth server readback",
+      "keys": [
+        "IssuerEndpoint",
+        "SSLConfiguration",
+        "ServerCredentials",
+        "Metadata"
+      ]
+    },
+    {
+      "label": "Create OAuth client configuration",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Update OAuth client configuration",
+      "status": 200,
+      "verification": "Changed fields verified from IRIS"
+    },
+    {
+      "label": "Cleanup",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Cleanup",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Cleanup",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Cleanup",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    }
+  ]
+}

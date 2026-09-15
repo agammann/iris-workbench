@@ -1,0 +1,20 @@
+{
+  "at": "2026-09-15T03:09:28.521Z",
+  "checks": [
+    {
+      "label": "Disposable process identified",
+      "pid": "6211",
+      "canSuspend": true
+    },
+    {
+      "label": "suspend",
+      "status": 200,
+      "state": "SUSP"
+    },
+    {
+      "label": "resume",
+      "status": 200,
+      "state": "HANG"
+    }
+  ]
+}

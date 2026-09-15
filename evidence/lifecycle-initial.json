@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-09-15T02:54:16.335Z",
+  "checks": [
+    {
+      "label": "Create app",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Verify app enable",
+      "status": 200,
+      "verification": "Changed fields verified from IRIS"
+    },
+    {
+      "label": "Concurrent description edit",
+      "status": 200,
+      "verification": "Changed fields verified from IRIS"
+    },
+    {
+      "label": "Stale review rejected",
+      "passed": true
+    },
+    {
+      "label": "Create role",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Failure",
+      "error": "apply 400 خطأ #942: Username and Role cannot have the same name: WORKBENCHTESTF5664B08"
+    },
+    {
+      "label": "Cleanup /v2/security/role",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Cleanup /v2/web-app",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    }
+  ]
+}

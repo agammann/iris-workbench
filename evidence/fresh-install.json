@@ -1,0 +1,77 @@
+{
+  "at": "2026-09-15T03:08:42.368Z",
+  "checks": [
+    {
+      "label": "Unauthenticated management read rejected",
+      "status": 401
+    },
+    {
+      "label": "Fresh container connection",
+      "status": 200,
+      "connected": true
+    },
+    {
+      "label": "Fresh read /v2/web-apps",
+      "status": 200,
+      "count": 23
+    },
+    {
+      "label": "Fresh read /v2/security/roles",
+      "status": 200,
+      "count": 37
+    },
+    {
+      "label": "Fresh read /v2/tasks",
+      "status": 200,
+      "count": 16
+    },
+    {
+      "label": "Fresh read /v2/processes",
+      "status": 200,
+      "count": 32
+    },
+    {
+      "label": "Fresh messages logs",
+      "status": 200,
+      "count": 200
+    },
+    {
+      "label": "Fresh audit logs",
+      "status": 200,
+      "count": 200
+    },
+    {
+      "label": "Fresh system capacity",
+      "status": 200,
+      "fields": [
+        "CPU logical cores",
+        "CPU load average (1 minute)",
+        "Host memory total (bytes)",
+        "Host memory available (bytes)",
+        "IRIS disk total (bytes)",
+        "IRIS disk free (bytes)",
+        "Measured at (UTC)",
+        "CPU total ticks",
+        "CPU idle ticks",
+        "Container memory used (bytes)",
+        "Container memory limit (bytes)"
+      ]
+    },
+    {
+      "label": "Cross origin request rejected",
+      "status": 403
+    },
+    {
+      "label": "Missing custom header rejected",
+      "status": 403
+    },
+    {
+      "label": "Protected app edit rejected",
+      "status": 400
+    },
+    {
+      "label": "Secret read rejected",
+      "status": 400
+    }
+  ]
+}

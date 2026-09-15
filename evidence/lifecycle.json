@@ -1,0 +1,170 @@
+{
+  "checkedAt": "2026-09-15T02:55:37.174Z",
+  "checks": [
+    {
+      "label": "Create app",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Verify app enable",
+      "status": 200,
+      "verification": "Changed fields verified from IRIS"
+    },
+    {
+      "label": "Concurrent description edit",
+      "status": 200,
+      "verification": "Changed fields verified from IRIS"
+    },
+    {
+      "label": "Stale review rejected",
+      "passed": true
+    },
+    {
+      "label": "Create role",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Create restricted test user",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Ungrant access denied",
+      "status": 403
+    },
+    {
+      "label": "Grant role",
+      "status": 200,
+      "verification": "Changed fields verified from IRIS"
+    },
+    {
+      "label": "Granted access allowed",
+      "status": 200
+    },
+    {
+      "label": "Revoke role",
+      "status": 200,
+      "verification": "Changed fields verified from IRIS"
+    },
+    {
+      "label": "Revoked access denied",
+      "status": 403
+    },
+    {
+      "label": "Create collection",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Replace secret",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Secret review redaction",
+      "passed": true
+    },
+    {
+      "label": "Create harmless task",
+      "status": 201,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Run harmless task",
+      "status": 200,
+      "verification": "Read back from IRIS; inspect the resulting state"
+    },
+    {
+      "label": "Suspend task",
+      "status": 200,
+      "verification": "Read back from IRIS; inspect the resulting state"
+    },
+    {
+      "label": "Resume task",
+      "status": 200,
+      "verification": "Read back from IRIS; inspect the resulting state"
+    },
+    {
+      "label": "Task run history",
+      "count": 3,
+      "results": [
+        {
+          "Status": "1",
+          "Result": "Resumed task",
+          "ErrNumber": 0
+        },
+        {
+          "Status": "1",
+          "Result": "Suspended task",
+          "ErrNumber": 0
+        },
+        {
+          "Status": "1",
+          "Result": "Create WorkbenchTest795214de",
+          "ErrNumber": 0
+        }
+      ]
+    },
+    {
+      "label": "messages log read",
+      "count": 200,
+      "available": true
+    },
+    {
+      "label": "audit log read",
+      "count": 200,
+      "available": true
+    },
+    {
+      "label": "tasks log read",
+      "count": 42,
+      "available": true
+    },
+    {
+      "label": "alerts log read",
+      "count": 0,
+      "available": false
+    },
+    {
+      "label": "system-monitor log read",
+      "count": 2,
+      "available": true
+    },
+    {
+      "label": "Journal records read",
+      "count": 100
+    },
+    {
+      "label": "Cleanup /v2/task",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Cleanup /v2/wallet/secret",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Cleanup /v2/wallet/collection",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Cleanup /v2/security/user",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Cleanup /v2/security/role",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    },
+    {
+      "label": "Cleanup /v2/web-app",
+      "status": 200,
+      "verification": "IRIS accepted the operation"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "at": "2026-09-15T03:18:36.572Z",
+  "checks": [
+    {
+      "label": "UTF8 configuration roundtrip",
+      "verification": "Changed fields verified from IRIS",
+      "matched": true
+    },
+    {
+      "label": "Browser fixture cleanup",
+      "verification": "Deletion verified: object no longer exists"
+    },
+    {
+      "label": "Final backend runtime log read",
+      "lines": 200
+    }
+  ]
+}

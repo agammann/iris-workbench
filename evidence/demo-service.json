@@ -1,0 +1,13 @@
+{
+  "verifiedOn": "2026-09-14 America/Los_Angeles",
+  "instance": "Local IRIS Community 2026.2",
+  "application": "/workbench-demo",
+  "before": {"httpStatus": 404, "configurationEnabled": false},
+  "browserReview": {"field": "Enabled", "current": false, "proposed": true},
+  "after": {
+    "httpStatus": 200,
+    "configurationEnabled": true,
+    "result": {"service": "Workbench demonstration", "status": "ready"}
+  },
+  "verification": "The configured service endpoint was requested before and after the browser apply action. No external service was involved."
+}

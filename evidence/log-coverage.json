@@ -1,0 +1,66 @@
+{
+  "at": "2026-09-15T03:36:07.902Z",
+  "checks": [
+    {
+      "label": "Runtime source catalogue",
+      "sources": [
+        {
+          "id": "messages",
+          "files": [
+            "messages.log"
+          ]
+        },
+        {
+          "id": "alerts",
+          "files": []
+        },
+        {
+          "id": "system-monitor",
+          "files": [
+            "SystemMonitor.log"
+          ]
+        },
+        {
+          "id": "demo-activity",
+          "files": [
+            "activity.log",
+            "activity.log.1.gz",
+            "activity.old_20260914"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Full endpoint paging",
+      "lines": 701,
+      "unique": 701
+    },
+    {
+      "label": "activity.old_20260914",
+      "lines": [
+        "Archived demonstration event"
+      ]
+    },
+    {
+      "label": "activity.log.1.gz",
+      "lines": [
+        "Compressed demonstration event"
+      ]
+    },
+    {
+      "label": "messages",
+      "available": true,
+      "lines": 200
+    },
+    {
+      "label": "alerts",
+      "available": false,
+      "lines": 0
+    },
+    {
+      "label": "system-monitor",
+      "available": true,
+      "lines": 2
+    }
+  ]
+}
