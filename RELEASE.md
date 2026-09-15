@@ -2,7 +2,9 @@
 
 ## Delivery state
 
-The local release candidate is implemented and verified on IRIS Community 2026.2 running in a Linux Docker container. Source publication and the Open Exchange listing are being prepared. The app has not yet been accepted into the contest. This file will record the final source and listing URLs after readback verification.
+Version 0.1.0 is implemented and verified on IRIS Community 2026.2 in Linux Docker. The [MIT licensed source](https://github.com/agammann/iris-workbench) is public. Its initial remote source tree exactly matched the reviewed local tree, and [GitHub verification passed](https://github.com/agammann/iris-workbench/actions/runs/34926449233).
+
+The Open Exchange application was saved as IRIS Workbench, version 0.1.0, and sent for approval on September 14, 2026. The account portal confirmed "Sent for approval." Publication is awaiting moderation. Contest registration remains pending participant declarations and competition terms acceptance.
 
 ## Release contents
 

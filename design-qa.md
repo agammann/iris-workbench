@@ -45,3 +45,10 @@ No actionable P0, P1 or P2 findings remain in the reviewed design scope. The bro
 Refresh is an outlined action. Disabled has neutral semantics. Design sample is explicitly distinguished from live data. A nonfunctional sample Review changes button was replaced with a clear instruction to use live data. The app's real review dialog shows only the proposed changed fields and reports the result from IRIS. Dates, account identity and log records are dynamic. Tablet and phone inspectors stack below the table.
 
 The result preserves the selected design's hierarchy, density and visual character while implementing its controls as a working local application.
+
+
+## Release log controls check
+
+The source selector, archive selector, Older events and Latest events controls were exercised against the running IRIS extension. The browser opened an IRIS style rotated archive and paged 701 configured demonstration records without repeats or omissions. Empty timestamps have accessible inspection labels and an explicit missing timestamp message.
+
+The [current mobile log view](evidence/logs-mobile.png) was captured at a verified 390 by 844 viewport. The document client and scroll widths were both 375 pixels, including the browser scrollbar reservation. Controls stack, the inspector follows the table, and wide tables scroll internally. Browser warnings and errors were empty. No new actionable layout issues were found within this pass.
