@@ -22,10 +22,12 @@ const image =
   "containers.intersystems.com/intersystems/iris-community@sha256:87c8b9062530093d30384d66caa9933b8399bfbace7ddb7f1bdb983c0bfdb85b";
 const run = (args, input) => {
   const r = spawnSync("docker", args, { input, encoding: "utf8" });
-  if (r.status) throw Error(r.stderr || "Docker operation failed");
+  if (r.error) throw Error("Could not start Docker: " + r.error.message);
+  if (r.status !== 0) throw Error(r.stderr || "Docker operation failed");
   return r.stdout;
 };
-run(["info", "--format", "{{.OSType}}"]);
+if (run(["info", "--format", "{{.OSType}}"]).trim() !== "linux")
+  throw Error("IRIS setup requires Docker running Linux containers");
 const existing = spawnSync("docker", ["container", "inspect", container], {
   encoding: "utf8",
 });

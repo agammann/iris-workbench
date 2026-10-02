@@ -6,7 +6,8 @@ const container = process.env.IRIS_CONTAINER || "iris-workbench-dev";
 if (!/^[a-zA-Z0-9_.-]+$/.test(container)) throw Error("Invalid container name");
 function run(args) {
   const r = spawnSync("docker", args, { stdio: "inherit" });
-  if (r.status) process.exit(r.status || 1);
+  if (r.error) throw Error("Could not start Docker: " + r.error.message);
+  if (r.status !== 0) process.exit(r.status || 1);
 }
 run([
   "exec",

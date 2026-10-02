@@ -73,7 +73,18 @@ Keep the backend running on port 3411, then run `pnpm dev` for the Vite frontend
 ```powershell
 pnpm test
 pnpm run build
+pnpm run test:sites
+pnpm audit --audit-level=low
 ```
+
+`pnpm test` covers request boundaries and setup failures. To exercise the log reader inside a running IRIS container, select that container explicitly:
+
+```powershell
+$env:IRIS_CONTAINER = 'your-iris-container'
+pnpm run test:logs
+```
+
+The log checks create temporary fixtures under `/tmp/workbench-verification` in the selected container. A missing Docker executable or failed Docker command causes the check to fail.
 
 ## Demonstration workflow
 
