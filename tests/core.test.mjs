@@ -46,6 +46,14 @@ test("secret read endpoints stay inaccessible through explorer", () => {
   ])
     assert.throws(() => safePath(p, spec));
 });
+test("wallet names and types can be listed without retrieving secret values", () => {
+  assert.equal(
+    safePath("/v2/wallet/secrets?collection=Example", spec),
+    "/v2/wallet/secrets?collection=Example",
+  );
+  const fields = spec.components.schemas.WalletSecretList.items.properties;
+  assert.deepEqual(Object.keys(fields).sort(), ["Name", "Type"]);
+});
 test("fingerprint catches a concurrent configuration change", () => {
   assert.notEqual(
     fingerprint({ Enabled: false }),

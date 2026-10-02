@@ -35,6 +35,8 @@ export function safePath(path, spec, method = "get") {
     /\/secrets?$|\/password$|\/initial-access-token$|\/client\/secret$/.test(
       u.pathname,
     ) &&
+    // This endpoint returns names and types only, not secret values.
+    u.pathname !== "/v2/wallet/secrets" &&
     method === "get"
   )
     throw Error("Secret retrieval is intentionally unavailable");

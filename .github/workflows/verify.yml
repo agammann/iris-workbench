@@ -17,3 +17,4 @@ jobs:
       - run: python3 -m unittest discover -s tests -p test_logs.py -v
       - run: pnpm run build
       - run: pnpm run test:sites
+      - run: pnpm audit --audit-level=low

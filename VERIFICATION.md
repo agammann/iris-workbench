@@ -1,5 +1,29 @@
 # Verification record
 
+## October 2, 2026 review
+
+A fresh disposable container using the pinned IRIS Community 2026.2 image completed setup, extension installation, and a real runtime log read. The production build and Node server ran on Windows with Node 24.19.0 and pnpm 11.19.0. Chrome 154.0.8037.95 and Edge 154.0.4258.48 exercised the running portal.
+
+This review corrected two defects:
+
+- The wallet names and types endpoint was incorrectly blocked by the secret retrieval filter. The portal now permits that metadata list while continuing to reject secret retrieval. A real wallet collection and secret were created and replaced; the returned list contained only `Name` and `Type`. The browser displayed the secret entry in both tested browsers.
+- The Docker log test command returned success without running tests when the Docker executable was unavailable. Docker startup errors now fail explicitly, and setup verifies that the daemon runs Linux containers before writing state. A subprocess regression test verifies failure with Docker absent. Setup also refused an existing container without creating the requested state directory.
+
+Vite was updated from 6.4.2 to 6.4.3. The dependency audit then reported no known advisories, and CI now runs the audit. This is dependency maintenance, not a claim of an exhaustive security audit.
+
+Actual instance checks passed:
+
+1. The demonstration service returned HTTP 404 while disabled. Enabling it through the browser's one-field review returned **Changed fields verified from IRIS**, and a separate request returned HTTP 200 with the expected service JSON. Session history recorded the change. Cleanup verified deletion and restored HTTP 404.
+2. A concurrent configuration change caused the stale review to return HTTP 409.
+3. A disposable restricted account received HTTP 403, then 200 after role assignment, then 403 after revocation for the same protected read. Password and wallet values were hidden in reviews.
+4. A scheduled `Workbench.Heartbeat` task actually increased its counter. Task suspend and resume requests also succeeded. A separate identified disposable Workbench process changed to SUSP after suspension and HANG after resumption.
+5. A disposable certificate was imported and its validity fields read. TLS and OAuth server/client configurations were created, read, updated, and removed. OAuth checks covered configuration only; no identity provider authorization was performed.
+6. All management tabs, live runtime/audit/task logs, system capacity, and browser review/apply/readback flows passed in Chrome and Edge without uncaught page errors. Design sample layouts had no page-wide overflow at 1440, 390, and 320 CSS pixels. Tables and navigation retain their own horizontal scrolling on narrow screens.
+
+Seven Node tests, seven Python log tests inside the actual IRIS container, four packaging tests, the production build, and the dependency audit passed. Temporary accounts, roles, wallet entries, tasks, and security configurations were removed. Raw credentials and instance logs are not included in this report. The results below remain historical records; neither review establishes compatibility with every IRIS version, browser, or deployment environment.
+
+## September 14, 2026 verification
+
 Verified September 14, 2026 in America/Los_Angeles. Evidence timestamps use UTC and therefore include September 15. This record describes a working local build, not a published or submitted contest entry.
 
 ## Environment
