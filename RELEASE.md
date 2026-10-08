@@ -1,3 +1,13 @@
+# Release 1.0.0
+
+IRIS Workbench v1 is a local operator portal for the digest-pinned IRIS Community 2026.2 Linux container. Windows 11 x64, Node 24.19.0, pnpm 11.19.0 and desktop Chrome/Edge form the verified live configuration. See [installation](README.md), [operations](docs/operations.md) and the dated [verification record](VERIFICATION.md).
+
+The release provides an exact source ZIP, its SHA256 file, a source/configuration manifest and combined checksums. Both Linux and Windows verification must pass before the main-commit publisher uploads and verifies the complete asset set, fixes the tag to that checked commit, then publishes. Published versions are left unchanged; subsequent changes need a new version. Static build output alone cannot operate this Node backend or reach a visitor's local IRIS instance.
+
+The management implementation is retained from 0.1.0. This release adds pinned tooling, the available source-map-js maintenance update, versioned source delivery and explicit newcomer, upgrade, recovery and support instructions. Best-effort review conflict checks, in-memory sessions/history and bounded Linux log reads keep the boundaries described in the README. External provider OAuth authorization, all IRIS editions and remote production compatibility remain outside this release.
+
+## Historical 0.1.0 delivery
+
 # Release 0.1.0
 
 ## Delivery state

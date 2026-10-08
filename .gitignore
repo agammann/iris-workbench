@@ -8,3 +8,5 @@ dist/
 server/spec.json
 __pycache__/
 *.pyc
+release-artifacts/
+consumer-output/

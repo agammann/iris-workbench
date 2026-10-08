@@ -6,7 +6,7 @@ Built for the [InterSystems management portal contest](https://community.intersy
 
 ![IRIS Workbench selected design implemented as an interactive app](evidence/design-final.png)
 
-Version 0.1.0. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
+Version 1.0.0. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
 
 ## What works
 
@@ -22,7 +22,25 @@ The design sample is explicitly fictional and does not write to IRIS. Live mode 
 
 ## Requirements
 
-Node.js 22 or later, pnpm 11, and Docker Desktop with Linux containers. The fresh setup uses the verified IRIS Community 2026.2 image, pinned by digest. Allow at least 3 GB for the IRIS container, plus the host's normal overhead.
+Node.js 24.19.0 or later, pnpm 11.19.0, and Docker Desktop with Linux containers. Windows 11 x64 with Chrome and Edge is the verified local operator platform. The fresh setup uses the verified IRIS Community 2026.2 image, pinned by digest. Allow at least 3 GB for the IRIS container, plus the host's normal overhead.
+
+## Get the versioned source
+
+Download `iris-workbench_1.0.0_source.zip` and `SHA256SUMS` from the [v1.0.0 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.0). Check the ZIP before extracting:
+
+```powershell
+Get-FileHash .\iris-workbench_1.0.0_source.zip -Algorithm SHA256
+Get-Content .\SHA256SUMS
+Expand-Archive .\iris-workbench_1.0.0_source.zip -DestinationPath .\iris-workbench-v1
+Set-Location .\iris-workbench-v1\iris-workbench-1.0.0
+npm install --global pnpm@11.19.0
+node --version
+pnpm --version
+```
+
+The ZIP hash must match its line in `SHA256SUMS`; stop if it differs. The accompanying `release-manifest.json` identifies the exact source commit, tree, pinned Community image and API specification. The source ZIP contains the MIT license, frozen lockfile, backend and extension; it contains no private state or downloaded schema cache.
+
+For a first try, use **Create a fresh local instance** below. For an instance you already manage, use **Run with your existing IRIS instance**. The design sample is fictional; selecting it does not establish a live connection. No hosted service, LLM or provider API key is required.
 
 ## Run with your existing IRIS instance
 
@@ -62,9 +80,15 @@ node scripts/setup-local.mjs
 node scripts/start-local.mjs $env:WORKBENCH_STATE_DIR
 ```
 
-Setup creates a new Community container, generates a random local administrator credential, installs the extension, and verifies a runtime log read. The generated credential is stored only in your private state directory. The portal offers **Connect local instance** for this configuration. Do not include that directory in source control, archives or support reports.
+Setup creates a new Community container, generates a random local administrator credential, installs the extension, and verifies a runtime log read. The generated credential is stored only in your private state directory. The database itself stays inside this new container; the state directory is connection information, not a database backup. The portal offers **Connect local instance** for this configuration. Do not include that directory in source control, archives or support reports.
 
 On macOS or Linux, set the same environment variables using your shell's `export` command and use an appropriate private state path.
+
+## Upgrade, recovery and support
+
+Keep the previous source folder and the private state directory when upgrading Workbench. Stop only its Node process, install and build the new source in another directory, then restart it with the same connection file. An app upgrade does not recreate your IRIS container. Follow [operations and recovery](docs/operations.md) for extension updates, partial setup, database backups and removal boundaries.
+
+For help, use the [issue tracker](https://github.com/agammann/iris-workbench/issues) with the Workbench version, Node/pnpm/Docker versions, IRIS version and image digest, affected view, expected result and sanitized error. Omit credentials, wallet values, certificates/private keys, raw instance logs and your private state directory. See [contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md).
 
 ## Development
 
@@ -74,7 +98,7 @@ Keep the backend running on port 3411, then run `pnpm dev` for the Vite frontend
 pnpm test
 pnpm run build
 pnpm run test:sites
-pnpm audit --audit-level=low
+pnpm audit
 ```
 
 `pnpm test` covers request boundaries and setup failures. To exercise the log reader inside a running IRIS container, select that container explicitly:
@@ -84,7 +108,16 @@ $env:IRIS_CONTAINER = 'your-iris-container'
 pnpm run test:logs
 ```
 
-The log checks create temporary fixtures under `/tmp/workbench-verification` in the selected container. A missing Docker executable or failed Docker command causes the check to fail.
+The log checks create temporary fixtures under `/tmp/workbench-verification` in the selected container. The Python helper needs Linux directory file descriptors; run its tests in the chosen Linux container, not directly on Windows. A missing Docker executable or failed Docker command causes the check to fail.
+
+To check a committed release package without creating a container:
+
+```powershell
+pnpm package:release
+pnpm test:consumer
+```
+
+Packaging requires Git and a clean committed source tree. Python 3.12 is required by the archive verifier. The extracted consumer installs with the frozen lockfile, downloads and verifies the pinned schema, builds and runs the Node and static packaging tests. CI runs this on Linux and Windows, and runs the Linux log-reader suite separately. A live instance walkthrough remains a separate check; these package tests do not create or modify IRIS.
 
 ## Demonstration workflow
 
