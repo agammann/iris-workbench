@@ -1,5 +1,7 @@
 # Prototype Instructions
 
+The supported product is a local Node operator portal for the pinned IRIS Community Linux image. Preserve the distinction between the fictional design sample and actual live mode. Keep credentials, private state and downloaded server/spec.json outside committed source. Use pnpm 11.19.0 with the frozen lockfile. Preserve historical evidence and label controlled fixtures separately from real instance checks. Release packaging requires a clean committed tree; validate its extracted consumer before publication.
+
 Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.
 
 Before making substantial visual changes, use the Product Design plugin's `get-context` skill when the visual source is unclear or no longer matches the current goal. When the user gives durable prototype-specific design feedback, preferences, or decisions, record them in `AGENTS.md`.

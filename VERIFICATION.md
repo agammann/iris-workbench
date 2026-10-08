@@ -1,5 +1,19 @@
 # Verification record
 
+## October 8, 2026 v1 review
+
+The supported live configuration remains Windows 11 x64, Node 24.19.0, pnpm 11.19.0 and IRIS Community `2026.2.0.221.0com` in the digest-pinned Linux container. Chrome 155.0.8059.12 and Edge 154.0.4258.62 each completed 19 live management/view checks without uncaught page errors. Layouts at 1440, 390 and 320 CSS pixels had no page-wide overflow. See the sanitized [current check record](evidence/v1-checks.json).
+
+A fresh uniquely named Community instance completed the documented setup, extension install and actual runtime log read. The ordinary **Connect local instance** path connected the browser. A disposable disabled REST service returned HTTP 404; reviewing and enabling its one field in the browser produced independent HTTP 200 readback. Reload reconnected the live session. The same browser review flow restored the disabled state and independent HTTP 404, then ordinary Disconnect returned to the connection screen. Keyboard controls had visible focus.
+
+Actual instance checks repeated stale-review rejection (409), restricted-account denial/grant/revoke (403/200/403), password and wallet redaction, wallet metadata/blocked secret retrieval, scheduled heartbeat execution, task control, identified disposable process suspension/resumption, bounded real logs and capacity. Disposable certificate, TLS and OAuth configuration lifecycles passed and were cleaned up. OAuth covered configuration, not identity-provider authorization.
+
+Separate real-backend session checks used an **explicit controlled clock** to test the two-minute review and one-hour session limits. They checked rejection without an IRIS write, signout invalidation and rejection of a review by another session. This is an expiry fixture, not a claim that a browser was left running for an hour. No test-only clock hook is shipped.
+
+The v1 source installed with the frozen lockfile on actual pnpm 11.19.0, built, passed eight Node tests and four preserved static packaging tests, and had no reported dependency advisories after the available source-map-js 1.2.2 update. The seven Python log tests passed inside the Linux IRIS container; their directory-file-descriptor operations are intentionally Linux-specific. Direct setup regressions also verify invalid names/ports and unavailable Docker fail before state creation. App, backend, setup and extension implementation bytes remain unchanged from the reviewed management release.
+
+Exact source ZIP/checksum/manifest validation and fresh extracted consumer checks are required by the release workflow on both Linux and Windows. Those package checks do not create an instance; live operation is checked separately above. Database backup/restore instructions delegate to IRIS-owned procedures and are not a tested production restoration claim. The earlier sections and their first attempts remain historical records.
+
 ## October 2, 2026 review
 
 A fresh disposable container using the pinned IRIS Community 2026.2 image completed setup, extension installation, and a real runtime log read. The production build and Node server ran on Windows with Node 24.19.0 and pnpm 11.19.0. Chrome 154.0.8037.95 and Edge 154.0.4258.48 exercised the running portal.

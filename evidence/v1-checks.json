@@ -1,0 +1,176 @@
+{
+  "date": "2026-10-08",
+  "version": "1.0.0",
+  "configuration": {
+    "host": "Windows 11 x64",
+    "node": "24.19.0",
+    "pnpm": "11.19.0",
+    "iris": "Community 2026.2.0.221.0com, pinned Linux container",
+    "chrome": "155.0.8059.12",
+    "edge": "154.0.4258.62"
+  },
+  "live": {
+    "checks": [
+      "All management lists, actual runtime/audit/task logs, capacity and source catalogue",
+      "Concurrent change rejects stale review with 409",
+      "Actual restricted account: denied, granted and revoked (403/200/403); password hidden in review",
+      "Wallet creation and replacement; names/types list succeeds without values; secret retrieval blocked",
+      "Real scheduled heartbeat executed; task suspend/resume accepted",
+      "Identified disposable process suspended and resumed with actual state readback"
+    ],
+    "status": "PASS"
+  },
+  "securityConfigurations": {
+    "checks": [
+      {
+        "name": "Actual certificate import and validity metadata",
+        "fields": [
+          "HasPrivateKey",
+          "SerialNumber",
+          "IssuerDN",
+          "SubjectDN",
+          "ValidityNotBefore",
+          "ValidityNotAfter"
+        ]
+      },
+      {
+        "name": "TLS configuration create and read"
+      },
+      {
+        "name": "OAuth server/client configuration create, update and readback; no identity provider authorization"
+      }
+    ],
+    "cleanup": "All created configurations deleted",
+    "status": "PASS"
+  },
+  "coreBrowserJourney": {
+    "browser": "155.0.8059.12",
+    "checks": [
+      "Documented local connection and one-field enable review produces the independently verified real service response.",
+      "Reload reconnects the live session; the same reviewed browser workflow restores the original disabled state.",
+      "Ordinary user disconnect removes the session and returns to the connection screen."
+    ],
+    "http": [
+      404,
+      200,
+      404
+    ],
+    "errors": [],
+    "keyboard": [
+      {
+        "tag": "BUTTON",
+        "visible": true
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true
+      }
+    ],
+    "status": "PASS"
+  },
+  "sessionBoundary": {
+    "status": "PASS",
+    "clockFixture": true,
+    "actualIRISRead": true,
+    "noIRISWritesApplied": true,
+    "checks": [
+      "Real backend rejects a two-minute-old prepared review under an explicit controlled clock; no IRIS write applied.",
+      "Signout invalidates the old session and its review; another owned session cannot apply that review.",
+      "Real backend refuses an expired one-hour session under a controlled clock; this is not an hour of elapsed manual testing.",
+      "Local operator origin boundary and final signout work without returning server-held credentials."
+    ]
+  },
+  "browsers": [
+    {
+      "channel": "chrome",
+      "browser": "155.0.8059.12",
+      "checks": [
+        "Apps: Web applications",
+        "Access: Users",
+        "Access: Roles",
+        "Access: Resources",
+        "Security: Wallet collections",
+        "Security: Secrets",
+        "Security: Certificates",
+        "Security: TLS configurations",
+        "Security: OAuth servers",
+        "Security: OAuth clients",
+        "Tasks: Tasks",
+        "System: Processes",
+        "System: Devices",
+        "System: CPU, memory and disk",
+        "System: System dashboard",
+        "V1Browser one-field edit, review, apply and actual IRIS readback",
+        "Live log source messages",
+        "Live log source audit",
+        "Live log source tasks"
+      ],
+      "errors": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "scroll": 1440
+        },
+        {
+          "width": 390,
+          "scroll": 390
+        },
+        {
+          "width": 320,
+          "scroll": 320
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "channel": "msedge",
+      "browser": "154.0.4258.62",
+      "checks": [
+        "Apps: Web applications",
+        "Access: Users",
+        "Access: Roles",
+        "Access: Resources",
+        "Security: Wallet collections",
+        "Security: Secrets",
+        "Security: Certificates",
+        "Security: TLS configurations",
+        "Security: OAuth servers",
+        "Security: OAuth clients",
+        "Tasks: Tasks",
+        "System: Processes",
+        "System: Devices",
+        "System: CPU, memory and disk",
+        "System: System dashboard",
+        "V1Browser one-field edit, review, apply and actual IRIS readback",
+        "Live log source messages",
+        "Live log source audit",
+        "Live log source tasks"
+      ],
+      "errors": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "scroll": 1440
+        },
+        {
+          "width": 390,
+          "scroll": 390
+        },
+        {
+          "width": 320,
+          "scroll": 320
+        }
+      ],
+      "status": "PASS"
+    }
+  ],
+  "sourceChecks": {
+    "frozenInstall": true,
+    "build": true,
+    "nodeTests": 8,
+    "staticPackagingTests": 4,
+    "linuxContainerLogTests": 7,
+    "auditAdvisories": 0
+  },
+  "boundary": "One uniquely owned local pinned IRIS instance. Controlled session clock is a labeled fixture, not one hour of elapsed manual testing. No remote production, all-edition, OAuth-provider authorization or database-backup restoration claim."
+}
