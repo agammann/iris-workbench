@@ -44,8 +44,39 @@ jobs:
           name: iris-workbench-release
           path: release-artifacts/
           if-no-files-found: error
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      IRIS_CONTAINER: iris-workbench-ci-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - run: npm install --global pnpm@11.19.0
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/fetch-spec.mjs
+      - run: pnpm build
+      - name: Initialize a disposable pinned IRIS instance
+        env:
+          WORKBENCH_STATE_DIR: ${{ runner.temp }}/iris-workbench-ci-${{ github.run_id }}-${{ github.run_attempt }}
+        run: node scripts/setup-local.mjs
+      - name: Verify the real configured sign-in and read path
+        env:
+          WORKBENCH_STATE_DIR: ${{ runner.temp }}/iris-workbench-ci-${{ github.run_id }}-${{ github.run_attempt }}
+        run: node scripts/verify-local.mjs "$WORKBENCH_STATE_DIR"
+      - name: Remove only this job's disposable instance and private state
+        if: always()
+        env:
+          WORKBENCH_STATE_DIR: ${{ runner.temp }}/iris-workbench-ci-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          docker rm --force "$IRIS_CONTAINER" > /dev/null 2>&1 || true
+          rm -rf -- "$WORKBENCH_STATE_DIR"
   publish:
-    needs: verify
+    needs: [verify, verify-live]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -1,6 +1,6 @@
 {
   "name": "iris-workbench",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -12,6 +12,7 @@
     "start": "node server/index.mjs",
     "test": "node --test tests/core.test.mjs tests/connection.test.mjs tests/session.test.mjs tests/scripts.test.mjs",
     "test:logs": "node scripts/test-logs.mjs",
+    "test:live": "node scripts/verify-local.mjs",
     "package:release": "node scripts/package-release.mjs",
     "test:consumer": "node scripts/consumer-check.mjs"
   },

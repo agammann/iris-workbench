@@ -1,3 +1,11 @@
+# Release 1.0.1
+
+This patch release includes the IRIS authentication fixes and corrected setup directions. Empty or HTML authentication failures preserve their HTTP status, fresh setup checks `/api/admin/info` using the generated credential, and the README explains the separate authentication prerequisites for an existing instance.
+
+The v1.0.0 source ZIP is immutable and does not contain these fixes. Use the v1.0.1 source ZIP linked from the README. Its source, extracted consumer and release checks run on Linux and Windows. A separate Linux CI job follows fresh setup against the pinned IRIS container and exercises configured backend sign-in, authenticated reads, runtime logs and signout before publication. This job checks that owned disposable instance; it does not certify every existing IRIS deployment.
+
+## Historical 1.0.0 delivery
+
 # Release 1.0.0
 
 IRIS Workbench v1 is a local operator portal for the digest-pinned IRIS Community 2026.2 Linux container. Windows 11 x64, Node 24.19.0, pnpm 11.19.0 and desktop Chrome/Edge form the verified live configuration. See [installation](README.md), [operations](docs/operations.md) and the dated [verification record](VERIFICATION.md).
