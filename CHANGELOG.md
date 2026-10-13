@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Preserve upstream authentication failures, including empty and HTML 401 responses, with connection and permission diagnostics.
+- Verify the admin sign-in endpoint during fresh setup and document existing-instance authentication and web-origin prerequisites.
+
 ## 1.0.0
 
 - Deliver versioned MIT source, frozen dependencies, SHA256 checksums and a manifest of the checked source and pinned upstream inputs.

@@ -3,6 +3,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { adminRequest, irisOrigin } from "../server/connection.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const container = process.env.IRIS_CONTAINER || "iris-workbench-local";
 const port = Number(process.env.IRIS_PORT || 52773);
@@ -77,6 +78,13 @@ const result = run(
 if (!result.includes("CONFIGURED:1"))
   throw Error("Could not initialize the local account");
 fs.writeFileSync(credentialsPath, JSON.stringify(credentials), { mode: 0o600 });
+// Verify the same authenticated endpoint Workbench uses to sign in. A working
+// extension alone does not establish access to the separate /api/admin app.
+await adminRequest(
+  irisOrigin(`http://127.0.0.1:${port}`),
+  credentials,
+  "/info",
+);
 const install = spawnSync(
   process.execPath,
   [path.join(root, "scripts/install-iris.mjs")],

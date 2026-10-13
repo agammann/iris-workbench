@@ -7,9 +7,8 @@ import {
   redact,
   fingerprint,
   safePath,
-  errorsOf,
-  messageOf,
 } from "./security.mjs";
+import { adminRequest, irisOrigin } from "./connection.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const spec = JSON.parse(
   fs.readFileSync(path.join(root, "server/spec.json"), "utf8"),
@@ -18,18 +17,7 @@ const spec = JSON.parse(
 const oauthFields = spec.components.schemas.OAuth2Client.properties;
 oauthFields.ServerDefinition = oauthFields.OAuth2ServerDefinition;
 delete oauthFields.OAuth2ServerDefinition;
-const upstream = new URL(process.env.IRIS_URL || "http://127.0.0.1:52773");
-if (
-  !["http:", "https:"].includes(upstream.protocol) ||
-  upstream.username ||
-  upstream.password
-)
-  throw Error("IRIS_URL must be an HTTP(S) origin without credentials");
-if (
-  upstream.protocol === "http:" &&
-  !["localhost", "127.0.0.1", "[::1]", "iris"].includes(upstream.hostname)
-)
-  throw Error("Remote IRIS connections require HTTPS");
+const upstream = irisOrigin(process.env.IRIS_URL || "http://127.0.0.1:52773");
 const port = Number(process.env.PORT || 3411),
   sessions = new Map(),
   pending = new Map();
@@ -58,44 +46,8 @@ async function body(req) {
   const text = Buffer.concat(chunks).toString("utf8");
   return text ? JSON.parse(text) : {};
 }
-async function iris(s, p, method = "GET", payload) {
-  const r = await fetch(new URL("/api/admin" + p, upstream), {
-    method,
-    headers: {
-      Authorization:
-        "Basic " + Buffer.from(s.user + ":" + s.password).toString("base64"),
-      "Content-Type": "application/json",
-    },
-    body: payload === undefined ? undefined : JSON.stringify(payload),
-    redirect: "error",
-    signal: AbortSignal.timeout(15000),
-  });
-  const chunks = [];
-  let bytes = 0;
-  for await (const chunk of r.body) {
-    bytes += chunk.byteLength;
-    if (bytes > 8 * 1024 * 1024) throw Error("IRIS response is too large");
-    chunks.push(Buffer.from(chunk));
-  }
-  const raw = Buffer.concat(chunks).toString("utf8");
-  let d;
-  try {
-    d = JSON.parse(raw);
-  } catch {
-    throw Error(`IRIS returned HTTP ${r.status} without JSON`);
-  }
-  if (!r.ok || errorsOf(d).length) {
-    const err = Error(messageOf(d) || `IRIS returned HTTP ${r.status}`);
-    err.upstreamStatus = r.status;
-    err.status = [401, 403, 404].includes(r.status) ? r.status : 400;
-    throw err;
-  }
-  return {
-    status: r.status,
-    data: d.result ?? d,
-    location: r.headers.get("location"),
-  };
-}
+const iris = (s, p, method = "GET", payload) =>
+  adminRequest(upstream, s, p, method, payload);
 async function asyncQuery(s, p) {
   const start = await iris(s, p, "POST");
   if (start.status !== 202) return start.data;
