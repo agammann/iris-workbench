@@ -6,6 +6,34 @@ Use this portal as a local operator for one configured IRIS instance. Keep Node 
 
 Use Ctrl+C in the terminal that owns Workbench's Node server. This stops the portal, clears server-held sessions, pending reviews and session history, and leaves the IRIS container intact. Restart from the same source directory and private state path, then reconnect. Reloading the browser within an active session was checked; signing out invalidates the session. Start a new review after a restart or signout.
 
+## Connection diagnostics
+
+Workbench reads `IRIS_URL` when its Node backend starts. Set it in that terminal to the IRIS web server's HTTP(S) origin, including its web port, and restart Node after changing it. For example, use `http://127.0.0.1:52773`, without `/api/admin`, `/csp/sys`, credentials, query parameters or fragments. The IRIS superserver port (commonly 1972) is not the web port. Remote instances require HTTPS. A reverse proxy must expose `/api/admin/*` at those absolute paths on the configured origin and pass the Authorization header without substituting another authentication scheme. If you install the extension, it must also expose `/api/workbench/*`. Hosting these APIs under an extra path prefix is not supported.
+
+The sign-in request is `GET /api/admin/info` with the username and password supplied using HTTP Basic authentication. The supported instance must expose the sysadmin REST API; IRIS Community 2026.2 is the verified target. The supplied extension creates or updates only `/api/workbench` and does not configure `/api/admin` or add the sysadmin APIs to an older instance.
+
+Test the same origin and account outside Workbench. In PowerShell, set `IRIS_URL` to the origin used by the backend and run:
+
+```powershell
+curl.exe --user YOUR_USERNAME --include "${env:IRIS_URL}/api/admin/info"
+```
+
+`curl.exe` avoids PowerShell's `curl` alias. On macOS or Linux use `curl --user YOUR_USERNAME --include "$IRIS_URL/api/admin/info"`. The command prompts for the password, keeping it out of command history. Inspect the status locally; the response may include private instance details and should not be attached to support reports.
+
+| Result | What to check |
+| :--- | :--- |
+| HTTP 200 with the expected instance information | The sign-in endpoint works for this origin and account. If Workbench still fails, check the environment in the Node process, restart it and reconnect with the same credentials. This does not prove permission for every management operation. |
+| HTTP 401 | In Management Portal, open **System Administration → Security → Applications → Web Applications → `/api/admin`**. Confirm Enabled and Password authentication, then check the account is enabled and the password is valid. If Password is unavailable, check the [system-wide authentication options](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=ROARS_iam_instanceauthn). For a proxied connection, check that the gateway receives the Authorization header. |
+| HTTP 403 | Inspect the application's required resource and the user's permission for the requested operation. Authentication and authorization are separate checks. |
+| HTTP 404 or an unexpected HTML page | Verify the web port, proxy routing and `/api/admin` availability on the IRIS version. Check that the URL reaches the intended instance. |
+| Connection refused, timeout or TLS error | Check the web server, published container port, firewall and certificate trust. Fix the connection or trust configuration before testing authentication. |
+
+When changing `/api/admin`, preserve its dispatch class, namespace, required resource and other authentication methods. `%ALL` privileges do not override a disabled application, an authentication method that is not allowed, or invalid credentials. Follow InterSystems' [web application authentication settings](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GSA_manage_applications) and [user account settings](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GSA_config_user_accounts); do not remove access restrictions just to make the test succeed.
+
+A Workbench request can also return HTTP 401 because its own one hour session expired, was signed out or was cleared by a backend restart. Reconnect in that case. An upstream IRIS HTTP 401 during sign-in or a live read requires checking IRIS authentication as above. A report that `%ALL` still receives HTTP 401 does not by itself establish which authentication setting, credential or gateway caused it.
+
+After the direct sign-in check passes, connect and select **Live data**, then follow [DEMO.md](../DEMO.md) on an instance where you may create a disposable application. The walkthrough creates a real REST service, checks HTTP 404 while disabled, applies a reviewed Enabled change and verifies HTTP 200 with JSON. This gives reviewers a live write and independent service response beyond log inspection. The design sample is fictional and does not test the instance.
+
 ## Upgrade Workbench
 
 1. Keep the prior source directory and its version. Check the new release ZIP against SHA256SUMS and extract to a different directory.

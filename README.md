@@ -44,6 +44,12 @@ For a first try, use **Create a fresh local instance** below. For an instance yo
 
 ## Run with your existing IRIS instance
 
+Workbench connects to the IRIS **web server** and signs in by sending HTTP Basic credentials to `GET /api/admin/info`. Before starting it, check these prerequisites in IRIS Management Portal:
+
+1. Use an instance that exposes the sysadmin REST APIs in the [pinned specification](#api-specification-and-compatibility). The verified target is IRIS Community 2026.2; installing the Workbench extension does not install or upgrade `/api/admin`.
+2. Under **System Administration → Security → Applications → Web Applications**, open `/api/admin`. Confirm that it is enabled and **Password** is allowed as an authentication method. If Password is unavailable there, check the [system-wide authentication options](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=ROARS_iam_instanceauthn) first. Preserve the application's existing dispatch class, namespace, required resource and other authentication methods. Follow the official [web application authentication settings](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GSA_manage_applications).
+3. Use an enabled IRIS account with a valid password and permission for the management operations you intend to perform. `%ALL` grants privileges after authentication; it does not bypass a disabled application, a disallowed authentication method or invalid credentials. Check the [user account settings](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GSA_config_user_accounts) if the account cannot sign in.
+
 From this directory:
 
 ```powershell
@@ -54,7 +60,17 @@ $env:IRIS_URL = 'http://127.0.0.1:52773'
 node server/index.mjs
 ```
 
+Set `IRIS_URL` to the origin of that web server, including its web port: for example `http://127.0.0.1:52773` or `https://iris.example.com`. Do not append `/api/admin`, `/csp/sys` or another path, and do not use the IRIS superserver port (commonly 1972). Workbench adds the API paths itself. Set the environment variables in the same terminal **before** starting Node; restart the backend after changing them.
+
 Open [IRIS Workbench](http://127.0.0.1:3411). Enter an existing IRIS username and password in the connection form. The password remains in server memory for a one hour session and is never returned to the client. Sign out to remove the session. For a remote instance use HTTPS; the server rejects remote plaintext connections.
+
+If connection fails, test the same endpoint and account directly. On Windows use `curl.exe` to avoid PowerShell's `curl` alias:
+
+```powershell
+curl.exe --user YOUR_USERNAME --include "${env:IRIS_URL}/api/admin/info"
+```
+
+On macOS or Linux use `curl --user YOUR_USERNAME --include "$IRIS_URL/api/admin/info"`. Both commands prompt for the password; do not put it in the command or share the response body. HTTP 200 confirms this sign-in endpoint works. HTTP 401 means that IRIS or its web gateway rejected authentication; check the prerequisites above and any proxy's handling of the Authorization header. See [connection diagnostics](docs/operations.md#connection-diagnostics) for other responses and for expired Workbench sessions.
 
 To enable runtime log and capacity views in a local Docker instance:
 
@@ -63,7 +79,7 @@ $env:IRIS_CONTAINER = 'your-iris-container'
 node scripts/install-iris.mjs
 ```
 
-The installer loads the supplied classes into `%SYS` and creates or updates `/api/workbench`, using password authentication and `%Admin_Operate` access. It does not modify any other application. For a non Docker Linux installation, import the supplied classes in `iris/Workbench` into `%SYS`, copy `iris/workbench_logs.py` to `workbench/workbench_logs.py` under the active IRIS manager directory, and configure that REST application with the same authentication and resource settings. The text reader and capacity collector target Linux IRIS instances. The Windows host used for this project runs IRIS in a Linux Docker container.
+The installer loads the supplied classes into `%SYS` and creates or updates `/api/workbench`, using password authentication and `%Admin_Operate` access. It does not modify `/api/admin` or its authentication settings; the sign-in prerequisites above must already be satisfied. For a non Docker Linux installation, import the supplied classes in `iris/Workbench` into `%SYS`, copy `iris/workbench_logs.py` to `workbench/workbench_logs.py` under the active IRIS manager directory, and configure that REST application with the same authentication and resource settings. The text reader and capacity collector target Linux IRIS instances. The Windows host used for this project runs IRIS in a Linux Docker container.
 
 ## Create a fresh local instance
 
@@ -80,7 +96,7 @@ node scripts/setup-local.mjs
 node scripts/start-local.mjs $env:WORKBENCH_STATE_DIR
 ```
 
-Setup creates a new Community container, generates a random local administrator credential, installs the extension, and verifies a runtime log read. The generated credential is stored only in your private state directory. The database itself stays inside this new container; the state directory is connection information, not a database backup. The portal offers **Connect local instance** for this configuration. Do not include that directory in source control, archives or support reports.
+Setup creates a new Community container, generates a random local administrator credential, verifies authenticated access to `/api/admin/info`, installs the extension, and verifies a runtime log read. The generated credential is stored only in your private state directory. The database itself stays inside this new container; the state directory is connection information, not a database backup. The portal offers **Connect local instance** for this configuration. Do not include that directory in source control, archives or support reports.
 
 On macOS or Linux, set the same environment variables using your shell's `export` command and use an appropriate private state path.
 
@@ -123,6 +139,8 @@ Packaging requires Git and a clean committed source tree. Python 3.12 is require
 
 Follow [DEMO.md](DEMO.md) to create a disposable REST service, observe its HTTP 404 while disabled, enable it through the browser review flow, and verify HTTP 200 with a real JSON response. The script refuses to overwrite an existing application and provides an identity checked cleanup command.
 
+For a live-instance retest, first confirm `/api/admin/info` returns HTTP 200, connect to Workbench and select **Live data**, then run this demonstration. It supplies a real application and an observable configuration change beyond the available logs. Use an instance you manage and may create a disposable application on; fictional design sample data does not verify IRIS access.
+
 The walkthrough also explains how to inspect the other five management areas. See the [verification record](VERIFICATION.md) for actual permission, task execution, process control and security lifecycle evidence.
 
 ## Operational boundaries
@@ -147,7 +165,9 @@ See [third party notices](THIRD-PARTY-NOTICES.md). The project source is provide
 
 | Symptom | Action |
 | :--- | :--- |
-| Could not connect to IRIS | Confirm the Linux container is running, the configured port matches, and the username has access to the requested management APIs. |
+| Could not connect to IRIS | Confirm `IRIS_URL` is the correct web server origin, the instance is reachable and the direct `/api/admin/info` check succeeds. Restart Node after changing environment variables. See [connection diagnostics](docs/operations.md#connection-diagnostics). |
+| IRIS sign-in returns HTTP 401, even with `%ALL` | Check `/api/admin` is enabled and allows Password authentication, the account is enabled and its password is valid. The extension installer only configures `/api/workbench`. |
+| Workbench asks to reconnect after previously working | Its one hour session may have expired, or the backend restarted. Reconnect; a local session failure is distinct from an IRIS authentication rejection. |
 | Runtime extension HTTP error | Run the installer against the intended container. Confirm all three classes compiled and the helper file is present. `%Admin_Operate` is required for extension reads. |
 | A view returns Forbidden | Workbench uses the connected user's IRIS permissions. Sign in with an appropriately authorized account; the portal does not grant itself privileges. |
 | Older log page says the file changed | Select Latest events to start from the new file state. |
