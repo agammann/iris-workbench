@@ -1,3 +1,11 @@
+# Release 1.0.2
+
+This patch fixes empty-response validation. Successful writes may return no representation; Workbench preserves their status and polling location without attempting to iterate a null stream. Read and sign-in responses must still contain valid JSON. Sign-in requires nonempty `username` and `serverVersion` strings, and explicit null or empty results cannot create a session or local connection.
+
+Use the v1.0.2 source ZIP linked from the README; v1.0.1 does not contain this validation fix. Publication requires the Linux/Windows source-consumer matrix and the pinned live IRIS connection check.
+
+## Historical 1.0.1 delivery
+
 # Release 1.0.1
 
 This patch release includes the IRIS authentication fixes and corrected setup directions. Empty or HTML authentication failures preserve their HTTP status, fresh setup checks `/api/admin/info` using the generated credential, and the README explains the separate authentication prerequisites for an existing instance.

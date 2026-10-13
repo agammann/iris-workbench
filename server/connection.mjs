@@ -58,10 +58,22 @@ export async function adminRequest(upstream, credentials, apiPath, method = "GET
   }
   const chunks = [];
   let bytes = 0;
-  for await (const chunk of response.body) {
-    bytes += chunk.byteLength;
-    if (bytes > 8 * 1024 * 1024) throw Error("IRIS response is too large");
-    chunks.push(Buffer.from(chunk));
+  if (response.body) {
+    for await (const chunk of response.body) {
+      bytes += chunk.byteLength;
+      if (bytes > 8 * 1024 * 1024) throw Error("IRIS response is too large");
+      chunks.push(Buffer.from(chunk));
+    }
+  }
+  const location = response.headers.get("location");
+  const infoRequest = apiPath.split("?")[0] === "/info";
+  if (bytes === 0) {
+    if (!response.ok) throw httpError(response.status);
+    // Successful writes may carry no representation, including HTTP 204 and
+    // asynchronous acceptance with a polling Location. Reads still need JSON.
+    if (!infoRequest && ["PUT", "POST", "DELETE"].includes(method))
+      return { status: response.status, data: null, location };
+    throw Object.assign(Error(`IRIS /api/admin${apiPath.split("?")[0]} returned HTTP ${response.status} without JSON data. Check the IRIS web port and gateway routing.`), { status: 502 });
   }
   let data;
   try {
@@ -75,8 +87,12 @@ export async function adminRequest(upstream, credentials, apiPath, method = "GET
     error.message = messageOf(data) || error.message;
     throw error;
   }
-  data = data?.result ?? data;
-  if (apiPath === "/info" && (!data || typeof data !== "object" || Array.isArray(data)))
-    throw Object.assign(Error("IRIS /api/admin/info did not return a server information object. Check the IRIS web port and SysAdmin API compatibility."), { status: 502 });
-  return { status: response.status, data, location: response.headers.get("location") };
+  data = data && typeof data === "object" && Object.hasOwn(data, "result") ? data.result : data;
+  if (infoRequest && (
+    !data || typeof data !== "object" || Array.isArray(data) ||
+    typeof data.username !== "string" || !data.username.trim() ||
+    typeof data.serverVersion !== "string" || !data.serverVersion.trim()
+  ))
+    throw Object.assign(Error("IRIS /api/admin/info did not return a valid server information object with username and serverVersion. Check the IRIS web port and SysAdmin API compatibility."), { status: 502 });
+  return { status: response.status, data, location };
 }

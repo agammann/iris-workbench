@@ -50,7 +50,11 @@ const iris = (s, p, method = "GET", payload) =>
   adminRequest(upstream, s, p, method, payload);
 async function asyncQuery(s, p) {
   const start = await iris(s, p, "POST");
-  if (start.status !== 202) return start.data;
+  if (start.status !== 202) {
+    if (start.data === null)
+      throw Object.assign(Error("IRIS returned an empty query result without a polling response."), { status: 502 });
+    return start.data;
+  }
   const u = new URL(start.location, upstream);
   if (
     u.origin !== upstream.origin ||
