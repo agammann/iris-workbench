@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+- Handle empty successful write responses, including HTTP 204 and asynchronous polling locations, without iterating a null response stream.
+- Reject empty or malformed server-information responses before creating a session or saved connection; keep empty read responses as protocol errors.
+- Add request-handler and setup regressions for empty bodies, null results and missing server-information fields.
+
 ## 1.0.1
 
 - Preserve upstream authentication failures, including empty and HTML 401 responses, with connection and permission diagnostics.

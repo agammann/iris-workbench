@@ -76,12 +76,69 @@ test("a rejected error-body cancellation cannot hide the upstream auth status", 
 });
 
 test("successful non-JSON or malformed info cannot establish a connection", async (t) => {
-  for (const body of ["<html>wrong web server</html>", "null", "[]", '{"result":[]}']) {
+  for (const body of [
+    "", "   ", "<html>wrong web server</html>", "null", "[]", "{}",
+    '{"result":[]}', '{"result":null}', '{"result":{}}', '{"status":{"errors":[]}}',
+    '{"username":"operator"}', '{"serverVersion":"IRIS 2026.2"}',
+    '{"username":" ","serverVersion":"IRIS 2026.2"}',
+    '{"username":"operator","serverVersion":null}',
+    '{"username":17,"serverVersion":"IRIS 2026.2"}',
+  ]) {
     const mocked = t.mock.method(globalThis, "fetch", async () => new Response(body));
     try {
       await assert.rejects(adminRequest(origin, credentials, "/info"), (error) => {
         assert.equal(error.status, 502);
         assert.match(error.message, /JSON|server information object/);
+        return true;
+      });
+    } finally { mocked.mock.restore(); }
+  }
+});
+
+test("no-content sign-in and read responses reject with a protocol error", async (t) => {
+  for (const apiPath of ["/info", "/info?probe=1", "/v2/web-apps"]) {
+    const mocked = t.mock.method(globalThis, "fetch", async () => new Response(null, { status: 204 }));
+    try {
+      await assert.rejects(adminRequest(origin, credentials, apiPath), (error) => {
+        assert.equal(error.status, 502);
+        assert.match(error.message, /without JSON data/);
+        assert.doesNotMatch(error.message, /Symbol|asyncIterator/);
+        return true;
+      });
+    } finally { mocked.mock.restore(); }
+  }
+});
+
+test("valid direct and enveloped server information is accepted", async (t) => {
+  const info = { username: "operator", serverVersion: "IRIS 2026.2", apiVersion: 2 };
+  for (const body of [info, { result: info }]) {
+    const mocked = t.mock.method(globalThis, "fetch", async () => Response.json(body));
+    try { assert.deepEqual((await adminRequest(origin, credentials, "/info")).data, info); }
+    finally { mocked.mock.restore(); }
+  }
+});
+
+test("empty successful writes preserve status and async polling location", async (t) => {
+  for (const method of ["PUT", "POST", "DELETE"]) {
+    for (const status of [200, 202, 204, 205]) {
+      const location = "/api/admin/v2/async-result?id=empty-response";
+      const mocked = t.mock.method(globalThis, "fetch", async () => new Response(null, { status, headers: { Location: location } }));
+      try {
+        const response = await adminRequest(origin, credentials, "/v2/web-app?name=%2Ffixture", method);
+        assert.equal(response.status, status);
+        assert.equal(response.data, null);
+        assert.equal(response.location, location);
+      } finally { mocked.mock.restore(); }
+    }
+  }
+});
+
+test("empty HTTP failures and malformed nonempty write responses are not accepted", async (t) => {
+  for (const [status, body, expected] of [[400, null, 400], [500, null, 400], [200, "<html>wrong server</html>", 502], [200, " ", 502]]) {
+    const mocked = t.mock.method(globalThis, "fetch", async () => new Response(body, { status }));
+    try {
+      await assert.rejects(adminRequest(origin, credentials, "/v2/web-app?name=%2Ffixture", "DELETE"), (error) => {
+        assert.equal(error.status, expected);
         return true;
       });
     } finally { mocked.mock.restore(); }

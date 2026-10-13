@@ -8,7 +8,7 @@ Built for the [InterSystems management portal contest](https://community.intersy
 
 ![IRIS Workbench selected design implemented as an interactive app](evidence/design-final.png)
 
-Version 1.0.1. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
+Version 1.0.2. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
 
 ## What works
 
@@ -30,23 +30,23 @@ Creating a fresh local instance, or using the Docker extension installer, also r
 
 ## Get the versioned source
 
-Download `iris-workbench_1.0.1_source.zip` and `SHA256SUMS` from the [v1.0.1 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.1). This version includes the authentication diagnostics and setup checks; the older v1.0.0 ZIP does not. In PowerShell, check the ZIP before extracting:
+Download `iris-workbench_1.0.2_source.zip` and `SHA256SUMS` from the [v1.0.2 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.2). This version includes the connection fixes and empty-response validation. The earlier v1.0.1 ZIP does not include the empty-response fix. In PowerShell, check the ZIP before extracting:
 
 ```powershell
-Get-FileHash .\iris-workbench_1.0.1_source.zip -Algorithm SHA256
+Get-FileHash .\iris-workbench_1.0.2_source.zip -Algorithm SHA256
 Get-Content .\SHA256SUMS
-Expand-Archive .\iris-workbench_1.0.1_source.zip -DestinationPath .\iris-workbench-v1.0.1
-Set-Location .\iris-workbench-v1.0.1\iris-workbench-1.0.1
+Expand-Archive .\iris-workbench_1.0.2_source.zip -DestinationPath .\iris-workbench-v1.0.2
+Set-Location .\iris-workbench-v1.0.2\iris-workbench-1.0.2
 npm install --global pnpm@11.19.0
 node --version
 pnpm --version
 ```
 
-On Linux, compare `sha256sum iris-workbench_1.0.1_source.zip` with `SHA256SUMS`; on macOS use `shasum -a 256 iris-workbench_1.0.1_source.zip`. After the hash matches:
+On Linux, compare `sha256sum iris-workbench_1.0.2_source.zip` with `SHA256SUMS`; on macOS use `shasum -a 256 iris-workbench_1.0.2_source.zip`. After the hash matches:
 
 ```bash
-unzip iris-workbench_1.0.1_source.zip -d iris-workbench-v1.0.1
-cd iris-workbench-v1.0.1/iris-workbench-1.0.1
+unzip iris-workbench_1.0.2_source.zip -d iris-workbench-v1.0.2
+cd iris-workbench-v1.0.2/iris-workbench-1.0.2
 npm install --global pnpm@11.19.0
 node --version
 pnpm --version
@@ -94,7 +94,7 @@ If connection fails, open a second terminal, set `IRIS_URL` to the same origin u
 curl.exe --user YOUR_USERNAME --include "${env:IRIS_URL}/api/admin/info"
 ```
 
-On macOS or Linux use `curl --user YOUR_USERNAME --include "$IRIS_URL/api/admin/info"`. Both commands prompt for the password; do not put it in the command or share the response body. HTTP 200 with a JSON instance information object confirms this sign-in endpoint works; an HTML page is not a successful API response. HTTP 401 means that IRIS or its web gateway rejected authentication; check the prerequisites above and any proxy's handling of the Authorization header. See [connection diagnostics](docs/operations.md#connection-diagnostics) for other responses and for expired Workbench sessions.
+On macOS or Linux use `curl --user YOUR_USERNAME --include "$IRIS_URL/api/admin/info"`. Both commands prompt for the password; do not put it in the command or share the response body. HTTP 200 with JSON instance information containing nonempty `username` and `serverVersion` strings confirms this sign-in endpoint works; an HTML page is not a successful API response. HTTP 401 means that IRIS or its web gateway rejected authentication; check the prerequisites above and any proxy's handling of the Authorization header. See [connection diagnostics](docs/operations.md#connection-diagnostics) for other responses and for expired Workbench sessions.
 
 To enable runtime log and capacity views in a local Docker instance, run the installer from the source directory in a second terminal. Select the container that serves your configured `IRIS_URL` explicitly. In PowerShell:
 

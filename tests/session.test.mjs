@@ -56,23 +56,118 @@ test("sign-in preserves an empty upstream 401 and creates no session", async (t)
   assert.equal(disconnected.body.error, "Connect to IRIS to continue.");
 });
 
-test("a valid login establishes a session and live reads retain upstream rejection status", async (t) => {
+const serverInfo = { username: "operator", serverVersion: "IRIS 2026.2", apiVersion: 2 };
+
+for (const [shape, body] of [["direct", serverInfo], ["enveloped", { result: serverInfo }]]) {
+  test(`a valid ${shape} login establishes a session and live reads retain upstream rejection status`, async (t) => {
+    t.mock.method(globalThis, "fetch", async (url) => url.pathname === "/api/admin/info"
+      ? Response.json(body)
+      : new Response("<html>Authentication rejected</html>", { status: 401 }));
+    const request = await portal(t);
+    const login = await request("/api/session", "POST", { user: "operator", password: "fixture-password" });
+    assert.equal(login.status, 200);
+    assert.equal(login.body.connected, true);
+    assert.equal(login.body.user, "operator");
+    assert.deepEqual(login.body.info, serverInfo);
+    assert.equal(login.body.password, undefined);
+    const cookie = login.headers["Set-Cookie"].split(";")[0];
+    const session = await request("/api/session", "GET", undefined, cookie);
+    assert.equal(session.body.connected, true);
+    const read = await request("/api/read", "POST", { path: "/v2/web-apps" }, cookie);
+    assert.equal(read.status, 401);
+    assert.match(read.body.error, /IRIS \/api\/admin returned HTTP 401/);
+    const logout = await request("/api/session", "DELETE", undefined, cookie);
+    assert.equal(logout.status, 200);
+    assert.equal((await request("/api/session", "GET", undefined, cookie)).body.connected, false);
+  });
+}
+
+for (const [description, response] of [
+  ["empty HTTP 200 body", () => new Response("")],
+  ["null HTTP 200 body", () => new Response(null)],
+  ["HTTP 204 response", () => new Response(null, { status: 204 })],
+  ["empty JSON object", () => Response.json({})],
+  ["null result envelope", () => Response.json({ result: null })],
+  ["empty result envelope", () => Response.json({ result: {} })],
+  ["status-only envelope", () => Response.json({ status: { code: 200 } })],
+  ["missing server version", () => Response.json({ username: "operator" })],
+  ["missing username", () => Response.json({ serverVersion: "IRIS 2026.2" })],
+  ["non-string username", () => Response.json({ ...serverInfo, username: {} })],
+  ["non-string server version", () => Response.json({ result: { ...serverInfo, serverVersion: 2026.2 } })],
+  ["blank username", () => Response.json({ ...serverInfo, username: " \t" })],
+  ["blank server version", () => Response.json({ ...serverInfo, serverVersion: " \n" })],
+]) {
+  test(`sign-in rejects ${description} and creates no session`, async (t) => {
+    t.mock.method(globalThis, "fetch", async () => response());
+    const request = await portal(t);
+    const result = await request("/api/session", "POST", { user: "operator", password: "fixture-password" });
+    assert.equal(result.status, 502);
+    assert.match(result.body.error, /\/api\/admin/);
+    assert.match(result.body.error, /web port|gateway routing|SysAdmin API/);
+    assert.doesNotMatch(result.body.error, /fixture-password/);
+    assert.equal(result.headers["Set-Cookie"], undefined);
+    assert.equal((await request("/api/session", "GET")).body.connected, false);
+    assert.equal((await request("/api/schema", "GET")).status, 401);
+  });
+}
+
+test("a connected live read rejects an empty HTTP 204 response", async (t) => {
   t.mock.method(globalThis, "fetch", async (url) => url.pathname === "/api/admin/info"
-    ? Response.json({ result: { username: "operator", serverVersion: "IRIS 2026.2" } })
-    : new Response("<html>Authentication rejected</html>", { status: 401 }));
+    ? Response.json(serverInfo)
+    : new Response(null, { status: 204 }));
   const request = await portal(t);
   const login = await request("/api/session", "POST", { user: "operator", password: "fixture-password" });
   assert.equal(login.status, 200);
-  assert.equal(login.body.connected, true);
-  assert.equal(login.body.user, "operator");
-  assert.equal(login.body.password, undefined);
   const cookie = login.headers["Set-Cookie"].split(";")[0];
-  const session = await request("/api/session", "GET", undefined, cookie);
-  assert.equal(session.body.connected, true);
   const read = await request("/api/read", "POST", { path: "/v2/web-apps" }, cookie);
-  assert.equal(read.status, 401);
-  assert.match(read.body.error, /IRIS \/api\/admin returned HTTP 401/);
-  const logout = await request("/api/session", "DELETE", undefined, cookie);
-  assert.equal(logout.status, 200);
-  assert.equal((await request("/api/session", "GET", undefined, cookie)).body.connected, false);
+  assert.equal(read.status, 502);
+  assert.match(read.body.error, /\/api\/admin/);
+  assert.match(read.body.error, /web port|gateway routing|SysAdmin API/);
+});
+
+test("audit and journal queries reject empty HTTP 200 results", async (t) => {
+  const queries = [];
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    if (url.pathname === "/api/admin/info") return Response.json(serverInfo);
+    queries.push({ path: url.pathname, method: options.method });
+    return new Response(null);
+  });
+  const request = await portal(t);
+  const login = await request("/api/session", "POST", { user: "operator", password: "fixture-password" });
+  assert.equal(login.status, 200);
+  const cookie = login.headers["Set-Cookie"].split(";")[0];
+  for (const body of [{ source: "audit" }, { source: "journal", file: "fixture.jrn" }]) {
+    const logs = await request("/api/logs", "POST", body, cookie);
+    assert.equal(logs.status, 502);
+    assert.match(logs.body.error, /empty query result.*polling response/);
+    assert.equal(logs.body.data, undefined);
+  }
+  assert.deepEqual(queries, [
+    { path: "/api/admin/v2/security/audit/records", method: "POST" },
+    { path: "/api/admin/v2/journal/file/records", method: "POST" },
+  ]);
+});
+
+test("an empty HTTP 202 query acceptance polls for a completed empty result", async (t) => {
+  const queries = [];
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    if (url.pathname === "/api/admin/info") return Response.json(serverInfo);
+    queries.push({ path: url.pathname, method: options.method });
+    if (url.pathname === "/api/admin/v2/security/audit/records")
+      return new Response(null, { status: 202, headers: { Location: "/api/admin/v2/async-result?id=fixture" } });
+    assert.equal(url.pathname, "/api/admin/v2/async-result");
+    assert.equal(url.search, "?id=fixture");
+    return Response.json({ result: { State: "Finished", Result: [] } });
+  });
+  const request = await portal(t);
+  const login = await request("/api/session", "POST", { user: "operator", password: "fixture-password" });
+  assert.equal(login.status, 200);
+  const cookie = login.headers["Set-Cookie"].split(";")[0];
+  const logs = await request("/api/logs", "POST", { source: "audit" }, cookie);
+  assert.equal(logs.status, 200);
+  assert.deepEqual(logs.body.data, []);
+  assert.deepEqual(queries, [
+    { path: "/api/admin/v2/security/audit/records", method: "POST" },
+    { path: "/api/admin/v2/async-result", method: "GET" },
+  ]);
 });

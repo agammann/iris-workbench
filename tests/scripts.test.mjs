@@ -10,7 +10,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // Controlled HTTP and Docker fixtures exercise the real setup subprocess. They
 // do not claim to verify authentication against a live IRIS instance.
-function setupFixture(adminResponse = { status: 200, body: { version: "2026.2" } }) {
+const serverInfo = { username: "_SYSTEM", serverVersion: "IRIS 2026.2", apiVersion: 2 };
+
+function setupFixture(adminResponse = { status: 200, body: serverInfo }) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "workbench-setup-"));
   const state = path.join(directory, "state");
   const trace = path.join(directory, "trace.jsonl");
@@ -58,7 +60,7 @@ globalThis.fetch = async (url, options = {}) => {
   fs.appendFileSync(process.env.SETUP_FIXTURE_TRACE, JSON.stringify(event) + "\\n");
   if (target.pathname === "/api/admin/info") {
     if (!authorization) return new Response("Authentication required", { status: 401 });
-    const body = typeof adminResponse.body === "string" ? adminResponse.body : JSON.stringify(adminResponse.body);
+    const body = adminResponse.emptyBody ? null : typeof adminResponse.body === "string" ? adminResponse.body : JSON.stringify(adminResponse.body);
     return new Response(body, { status: adminResponse.status, headers: { "Content-Type": adminResponse.contentType || "application/json" } });
   }
   if (target.pathname === "/api/workbench/logs") {
@@ -106,21 +108,23 @@ function assertAdminPreflight(result) {
   assert.equal(adminRequests[1].rejectsRedirects, true);
 }
 
-test("local setup verifies real sign-in endpoint before installing extension or writing connection", () => {
-  const result = setupFixture();
-  assert.equal(result.status, 0, result.stderr);
-  assertAdminPreflight(result);
-  const adminIndex = result.events.findIndex((event) => event.endpoint === "/api/admin/info" && event.authenticated);
-  const installIndex = result.events.findIndex((event) => event.event === "install-extension");
-  const logIndex = result.events.findIndex((event) => event.endpoint === "/api/workbench/logs");
-  assert.ok(adminIndex < installIndex && installIndex < logIndex, "admin sign-in must pass before extension verification");
-  assert.equal(result.events[logIndex].credentialsMatched, true);
-  assert.deepEqual(result.connection, {
-    IRIS_URL: "http://127.0.0.1:52773",
-    IRIS_CREDENTIALS_FILE: result.credentialPath,
+for (const [shape, body] of [["direct", serverInfo], ["enveloped", { result: serverInfo }]]) {
+  test(`local setup verifies ${shape} server info before installing extension or writing connection`, () => {
+    const result = setupFixture({ status: 200, body });
+    assert.equal(result.status, 0, result.stderr);
+    assertAdminPreflight(result);
+    const adminIndex = result.events.findIndex((event) => event.endpoint === "/api/admin/info" && event.authenticated);
+    const installIndex = result.events.findIndex((event) => event.event === "install-extension");
+    const logIndex = result.events.findIndex((event) => event.endpoint === "/api/workbench/logs");
+    assert.ok(adminIndex < installIndex && installIndex < logIndex, "admin sign-in must pass before extension verification");
+    assert.equal(result.events[logIndex].credentialsMatched, true);
+    assert.deepEqual(result.connection, {
+      IRIS_URL: "http://127.0.0.1:52773",
+      IRIS_CREDENTIALS_FILE: result.credentialPath,
+    });
+    assert.match(result.stdout, /Local setup verified/);
   });
-  assert.match(result.stdout, /Local setup verified/);
-});
+}
 
 for (const status of [401, 403, 404]) {
   test(`local setup fails on admin HTTP ${status} despite extension being available`, () => {
@@ -146,14 +150,46 @@ test("local setup rejects an HTML admin success response before writing connecti
   assert.doesNotMatch(result.stdout, /Local setup verified/);
 });
 
-for (const body of [null, []]) {
-  test(`local setup rejects admin info ${body === null ? "null" : "array"} JSON before writing connection`, () => {
+for (const [description, body] of [
+  ["null", null],
+  ["array", []],
+  ["empty object", {}],
+  ["null result envelope", { result: null }],
+  ["empty result envelope", { result: {} }],
+  ["status-only envelope", { status: { code: 200 } }],
+  ["missing username", { serverVersion: "IRIS 2026.2" }],
+  ["missing server version", { username: "_SYSTEM" }],
+  ["non-string username", { ...serverInfo, username: {} }],
+  ["non-string server version", { result: { ...serverInfo, serverVersion: 2026.2 } }],
+  ["blank username", { ...serverInfo, username: " \t" }],
+  ["blank server version", { ...serverInfo, serverVersion: " \n" }],
+]) {
+  test(`local setup rejects admin info ${description} JSON before writing connection`, () => {
     const result = setupFixture({ status: 200, body });
     assert.equal(result.status, 1);
     assertAdminPreflight(result);
     assert.match(result.stderr, /server information object/);
     assert.equal(result.connection, null);
     assert.equal(result.events.some((event) => event.event === "install-extension"), false);
+    assert.equal(result.events.some((event) => event.endpoint === "/api/workbench/logs"), false);
+    assert.doesNotMatch(result.stdout, /Local setup verified/);
+  });
+}
+
+for (const [description, response] of [
+  ["zero-byte HTTP 200", { status: 200, body: "" }],
+  ["null-body HTTP 200", { status: 200, emptyBody: true }],
+  ["HTTP 204", { status: 204, emptyBody: true }],
+]) {
+  test(`local setup rejects admin info ${description} response before writing connection`, () => {
+    const result = setupFixture(response);
+    assert.equal(result.status, 1);
+    assertAdminPreflight(result);
+    assert.match(result.stderr, /\/api\/admin/);
+    assert.match(result.stderr, /web port|gateway routing|SysAdmin API/);
+    assert.equal(result.connection, null);
+    assert.equal(result.events.some((event) => event.event === "install-extension"), false);
+    assert.equal(result.events.some((event) => event.endpoint === "/api/workbench/logs"), false);
     assert.doesNotMatch(result.stdout, /Local setup verified/);
   });
 }
