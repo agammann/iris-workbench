@@ -1,9 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.0.1
 
 - Preserve upstream authentication failures, including empty and HTML 401 responses, with connection and permission diagnostics.
 - Verify the admin sign-in endpoint during fresh setup and document existing-instance authentication and web-origin prerequisites.
+- Clarify tooling, shell-specific quick starts, local-only demonstration credentials and source-download instructions.
+- Gate publication on a real fresh-instance connection smoke test alongside Linux and Windows source-consumer checks.
 
 ## 1.0.0
 

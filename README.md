@@ -2,11 +2,13 @@
 
 A local management portal for InterSystems IRIS. Inspect applications, follow events, review a change, and verify the result from the instance.
 
+Run the Node backend on your own computer to connect to IRIS. A hosted preview shows the fictional design sample; it cannot connect to your instance or perform live management operations.
+
 Built for the [InterSystems management portal contest](https://community.intersystems.com/post/intersystems-programming-contest-build-your-own-management-portal). Read the [project idea](IDEA.md), [demonstration](DEMO.md), [log coverage](LOGS.md), [verification record](VERIFICATION.md), and [design QA](design-qa.md).
 
 ![IRIS Workbench selected design implemented as an interactive app](evidence/design-final.png)
 
-Version 1.0.0. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
+Version 1.0.1. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
 
 ## What works
 
@@ -22,17 +24,29 @@ The design sample is explicitly fictional and does not write to IRIS. Live mode 
 
 ## Requirements
 
-Node.js 24.19.0 or later, pnpm 11.19.0, and Docker Desktop with Linux containers. Windows 11 x64 with Chrome and Edge is the verified local operator platform. The fresh setup uses the verified IRIS Community 2026.2 image, pinned by digest. Allow at least 3 GB for the IRIS container, plus the host's normal overhead.
+All users need Node.js 24.19.0 or later and pnpm 11.19.0. Connecting to an existing IRIS instance does not require Docker on the Workbench computer.
+
+Creating a fresh local instance, or using the Docker extension installer, also requires Docker running Linux containers: Docker Desktop on Windows or macOS, or Docker Engine on Linux. Windows 11 x64 with Chrome and Edge is the verified local operator platform. Fresh setup uses the verified IRIS Community 2026.2 image, pinned by digest. Allow at least 3 GB for the IRIS container, plus the host's normal overhead.
 
 ## Get the versioned source
 
-Download `iris-workbench_1.0.0_source.zip` and `SHA256SUMS` from the [v1.0.0 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.0). Check the ZIP before extracting:
+Download `iris-workbench_1.0.1_source.zip` and `SHA256SUMS` from the [v1.0.1 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.1). This version includes the authentication diagnostics and setup checks; the older v1.0.0 ZIP does not. In PowerShell, check the ZIP before extracting:
 
 ```powershell
-Get-FileHash .\iris-workbench_1.0.0_source.zip -Algorithm SHA256
+Get-FileHash .\iris-workbench_1.0.1_source.zip -Algorithm SHA256
 Get-Content .\SHA256SUMS
-Expand-Archive .\iris-workbench_1.0.0_source.zip -DestinationPath .\iris-workbench-v1
-Set-Location .\iris-workbench-v1\iris-workbench-1.0.0
+Expand-Archive .\iris-workbench_1.0.1_source.zip -DestinationPath .\iris-workbench-v1.0.1
+Set-Location .\iris-workbench-v1.0.1\iris-workbench-1.0.1
+npm install --global pnpm@11.19.0
+node --version
+pnpm --version
+```
+
+On Linux, compare `sha256sum iris-workbench_1.0.1_source.zip` with `SHA256SUMS`; on macOS use `shasum -a 256 iris-workbench_1.0.1_source.zip`. After the hash matches:
+
+```bash
+unzip iris-workbench_1.0.1_source.zip -d iris-workbench-v1.0.1
+cd iris-workbench-v1.0.1/iris-workbench-1.0.1
 npm install --global pnpm@11.19.0
 node --version
 pnpm --version
@@ -47,10 +61,10 @@ For a first try, use **Create a fresh local instance** below. For an instance yo
 Workbench connects to the IRIS **web server** and signs in by sending HTTP Basic credentials to `GET /api/admin/info`. Before starting it, check these prerequisites in IRIS Management Portal:
 
 1. Use an instance that exposes the sysadmin REST APIs in the [pinned specification](#api-specification-and-compatibility). The verified target is IRIS Community 2026.2; installing the Workbench extension does not install or upgrade `/api/admin`.
-2. Under **System Administration → Security → Applications → Web Applications**, open `/api/admin`. Confirm that it is enabled and **Password** is allowed as an authentication method. If Password is unavailable there, check the [system-wide authentication options](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=ROARS_iam_instanceauthn) first. Preserve the application's existing dispatch class, namespace, required resource and other authentication methods. Follow the official [web application authentication settings](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GSA_manage_applications).
+2. Under **System Administration → Security → Applications → Web Applications**, open `/api/admin`. Confirm that it is enabled and **Password** is allowed as an authentication method. If Password is unavailable there, check **System Administration → Security → System Security → Authentication/Web Session Options → Allow Password authentication**, as described in the [system-wide authentication options](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=ROARS_iam_instanceauthn). Preserve the application's existing dispatch class, namespace, required resource and other authentication methods. Follow the official [web application authentication settings](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GSA_manage_applications).
 3. Use an enabled IRIS account with a valid password and permission for the management operations you intend to perform. `%ALL` grants privileges after authentication; it does not bypass a disabled application, a disallowed authentication method or invalid credentials. Check the [user account settings](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=GSA_config_user_accounts) if the account cannot sign in.
 
-From this directory:
+From this directory, in PowerShell:
 
 ```powershell
 pnpm install --frozen-lockfile
@@ -60,30 +74,60 @@ $env:IRIS_URL = 'http://127.0.0.1:52773'
 node server/index.mjs
 ```
 
+On macOS or Linux:
+
+```bash
+pnpm install --frozen-lockfile
+node scripts/fetch-spec.mjs
+pnpm run build
+export IRIS_URL='http://127.0.0.1:52773'
+node server/index.mjs
+```
+
 Set `IRIS_URL` to the origin of that web server, including its web port: for example `http://127.0.0.1:52773` or `https://iris.example.com`. Do not append `/api/admin`, `/csp/sys` or another path, and do not use the IRIS superserver port (commonly 1972). Workbench adds the API paths itself. Set the environment variables in the same terminal **before** starting Node; restart the backend after changing them.
 
 Open [IRIS Workbench](http://127.0.0.1:3411). Enter an existing IRIS username and password in the connection form. The password remains in server memory for a one hour session and is never returned to the client. Sign out to remove the session. For a remote instance use HTTPS; the server rejects remote plaintext connections.
 
-If connection fails, test the same endpoint and account directly. On Windows use `curl.exe` to avoid PowerShell's `curl` alias:
+If connection fails, open a second terminal, set `IRIS_URL` to the same origin used by the running backend, and test the same endpoint and account directly. On Windows use `curl.exe` to avoid PowerShell's `curl` alias:
 
 ```powershell
 curl.exe --user YOUR_USERNAME --include "${env:IRIS_URL}/api/admin/info"
 ```
 
-On macOS or Linux use `curl --user YOUR_USERNAME --include "$IRIS_URL/api/admin/info"`. Both commands prompt for the password; do not put it in the command or share the response body. HTTP 200 confirms this sign-in endpoint works. HTTP 401 means that IRIS or its web gateway rejected authentication; check the prerequisites above and any proxy's handling of the Authorization header. See [connection diagnostics](docs/operations.md#connection-diagnostics) for other responses and for expired Workbench sessions.
+On macOS or Linux use `curl --user YOUR_USERNAME --include "$IRIS_URL/api/admin/info"`. Both commands prompt for the password; do not put it in the command or share the response body. HTTP 200 with a JSON instance information object confirms this sign-in endpoint works; an HTML page is not a successful API response. HTTP 401 means that IRIS or its web gateway rejected authentication; check the prerequisites above and any proxy's handling of the Authorization header. See [connection diagnostics](docs/operations.md#connection-diagnostics) for other responses and for expired Workbench sessions.
 
-To enable runtime log and capacity views in a local Docker instance:
+To enable runtime log and capacity views in a local Docker instance, run the installer from the source directory in a second terminal. Select the container that serves your configured `IRIS_URL` explicitly. In PowerShell:
 
 ```powershell
 $env:IRIS_CONTAINER = 'your-iris-container'
 node scripts/install-iris.mjs
 ```
 
-The installer loads the supplied classes into `%SYS` and creates or updates `/api/workbench`, using password authentication and `%Admin_Operate` access. It does not modify `/api/admin` or its authentication settings; the sign-in prerequisites above must already be satisfied. For a non Docker Linux installation, import the supplied classes in `iris/Workbench` into `%SYS`, copy `iris/workbench_logs.py` to `workbench/workbench_logs.py` under the active IRIS manager directory, and configure that REST application with the same authentication and resource settings. The text reader and capacity collector target Linux IRIS instances. The Windows host used for this project runs IRIS in a Linux Docker container.
+On macOS or Linux:
+
+```bash
+export IRIS_CONTAINER='your-iris-container'
+node scripts/install-iris.mjs
+```
+
+The installer loads the supplied classes into `%SYS` and creates or updates `/api/workbench`, using password authentication and `%Admin_Operate` access. It does not modify `/api/admin` or its authentication settings; the sign-in prerequisites above must already be satisfied.
+
+For a non Docker Linux installation, import and compile all three supplied classes in `iris/Workbench` into `%SYS`, and copy `iris/workbench_logs.py` to `workbench/workbench_logs.py` under the active IRIS manager directory. In Management Portal, create or update the `/api/workbench` web application with these settings:
+
+| Setting | Value |
+| :--- | :--- |
+| Namespace | `%SYS` |
+| Application type | REST |
+| Dispatch Class | `Workbench.Runtime` |
+| Enable Application | Yes |
+| Allowed Authentication Methods | Password |
+| Resource Required | `%Admin_Operate` |
+
+These settings apply to `/api/workbench`; preserve the built-in `/api/admin` dispatch class, namespace and resource. The text reader and capacity collector target Linux IRIS instances. The Windows host used for this project runs IRIS in a Linux Docker container.
 
 ## Create a fresh local instance
 
-Choose an unused local port and an empty private state directory outside the repository. The setup refuses to overwrite an existing container or credential file.
+Choose an unused local port and an empty private state directory outside the repository. Replace the example state path with your own. The setup refuses to overwrite an existing container or credential file. In PowerShell:
 
 ```powershell
 pnpm install --frozen-lockfile
@@ -93,18 +137,31 @@ $env:IRIS_CONTAINER = 'iris-workbench-local'
 $env:IRIS_PORT = '52773'
 $env:WORKBENCH_STATE_DIR = 'C:/path/to/private/workbench-state'
 node scripts/setup-local.mjs
-node scripts/start-local.mjs $env:WORKBENCH_STATE_DIR
+node scripts/start-local.mjs "$env:WORKBENCH_STATE_DIR"
 ```
 
 Setup creates a new Community container, generates a random local administrator credential, verifies authenticated access to `/api/admin/info`, installs the extension, and verifies a runtime log read. The generated credential is stored only in your private state directory. The database itself stays inside this new container; the state directory is connection information, not a database backup. The portal offers **Connect local instance** for this configuration. Do not include that directory in source control, archives or support reports.
 
-On macOS or Linux, set the same environment variables using your shell's `export` command and use an appropriate private state path.
+On macOS or Linux:
+
+```bash
+pnpm install --frozen-lockfile
+node scripts/fetch-spec.mjs
+pnpm run build
+export IRIS_CONTAINER='iris-workbench-local'
+export IRIS_PORT='52773'
+export WORKBENCH_STATE_DIR='/absolute/path/to/private/workbench-state'
+node scripts/setup-local.mjs
+node scripts/start-local.mjs "$WORKBENCH_STATE_DIR"
+```
+
+Leave the server terminal running and open [IRIS Workbench](http://127.0.0.1:3411), then choose **Connect local instance**. For later restarts, run `node scripts/start-local.mjs` with the same private state directory; do not rerun setup against the existing container.
 
 ## Upgrade, recovery and support
 
 Keep the previous source folder and the private state directory when upgrading Workbench. Stop only its Node process, install and build the new source in another directory, then restart it with the same connection file. An app upgrade does not recreate your IRIS container. Follow [operations and recovery](docs/operations.md) for extension updates, partial setup, database backups and removal boundaries.
 
-For help, use the [issue tracker](https://github.com/agammann/iris-workbench/issues) with the Workbench version, Node/pnpm/Docker versions, IRIS version and image digest, affected view, expected result and sanitized error. Omit credentials, wallet values, certificates/private keys, raw instance logs and your private state directory. See [contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md).
+For help, use the [issue tracker](https://github.com/agammann/iris-workbench/issues) with the Workbench and Node/pnpm versions, IRIS version, Docker version and image digest when applicable, affected view, expected result and sanitized error. Omit credentials, wallet values, certificates/private keys, raw instance logs and your private state directory. See [contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md).
 
 ## Development
 
@@ -126,20 +183,20 @@ pnpm run test:logs
 
 The log checks create temporary fixtures under `/tmp/workbench-verification` in the selected container. The Python helper needs Linux directory file descriptors; run its tests in the chosen Linux container, not directly on Windows. A missing Docker executable or failed Docker command causes the check to fail.
 
-To check a committed release package without creating a container:
+For contributors using a Git checkout, check a committed release package without creating a container:
 
 ```powershell
 pnpm package:release
 pnpm test:consumer
 ```
 
-Packaging requires Git and a clean committed source tree. Python 3.12 is required by the archive verifier. The extracted consumer installs with the frozen lockfile, downloads and verifies the pinned schema, builds and runs the Node and static packaging tests. CI runs this on Linux and Windows, and runs the Linux log-reader suite separately. A live instance walkthrough remains a separate check; these package tests do not create or modify IRIS.
+Packaging requires Git and a clean committed source tree. The downloaded source ZIP has no `.git` directory; use it to run, build and test the app, and use a Git checkout for `package:release` and `test:consumer`. Python 3.12 is required by the archive verifier. The extracted consumer installs with the frozen lockfile, downloads and verifies the pinned schema, builds and runs the Node and static packaging tests. CI runs this on Linux and Windows, and runs the Linux log-reader suite separately. A live instance walkthrough remains a separate check; these package tests do not create or modify IRIS.
 
 ## Demonstration workflow
 
 Follow [DEMO.md](DEMO.md) to create a disposable REST service, observe its HTTP 404 while disabled, enable it through the browser review flow, and verify HTTP 200 with a real JSON response. The script refuses to overwrite an existing application and provides an identity checked cleanup command.
 
-For a live-instance retest, first confirm `/api/admin/info` returns HTTP 200, connect to Workbench and select **Live data**, then run this demonstration. It supplies a real application and an observable configuration change beyond the available logs. Use an instance you manage and may create a disposable application on; fictional design sample data does not verify IRIS access.
+For a local live-instance retest, first confirm `/api/admin/info` returns HTTP 200 with JSON instance information, connect to Workbench and select **Live data**, then run this demonstration. It supplies a real application and an observable configuration change beyond the available logs. The demo script supports local IRIS only and requires the installed `Workbench.DemoREST` class plus a configured private credential file; fresh setup supplies both. Follow the [existing-instance demo prerequisites](DEMO.md#use-an-existing-local-instance) if you started with manual sign-in. Use an instance you manage and may create a disposable application on; fictional design sample data does not verify IRIS access.
 
 The walkthrough also explains how to inspect the other five management areas. See the [verification record](VERIFICATION.md) for actual permission, task execution, process control and security lifecycle evidence.
 
