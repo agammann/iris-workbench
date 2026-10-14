@@ -94,5 +94,7 @@ export async function adminRequest(upstream, credentials, apiPath, method = "GET
     typeof data.serverVersion !== "string" || !data.serverVersion.trim()
   ))
     throw Object.assign(Error("IRIS /api/admin/info did not return a valid server information object with username and serverVersion. Check the IRIS web port and SysAdmin API compatibility."), { status: 502 });
+  if (method === "GET" && data === null)
+    throw Object.assign(Error(`IRIS /api/admin${apiPath.split("?")[0]} returned null JSON data. Check the IRIS web port and gateway routing.`), { status: 502 });
   return { status: response.status, data, location };
 }

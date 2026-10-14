@@ -118,6 +118,22 @@ test("valid direct and enveloped server information is accepted", async (t) => {
   }
 });
 
+test("null JSON reads reject without rejecting successful null write results", async (t) => {
+  for (const data of [null, { result: null }]) {
+    const mocked = t.mock.method(globalThis, "fetch", async () => Response.json(data));
+    try {
+      for (const apiPath of ["/v2/web-apps", "/v2/async-result?id=fixture"])
+        await assert.rejects(adminRequest(origin, credentials, apiPath), (error) => {
+          assert.equal(error.status, 502);
+          assert.match(error.message, /null JSON data/);
+          return true;
+        });
+      for (const method of ["PUT", "POST", "DELETE"])
+        assert.equal((await adminRequest(origin, credentials, "/v2/web-app", method)).data, null);
+    } finally { mocked.mock.restore(); }
+  }
+});
+
 test("empty successful writes preserve status and async polling location", async (t) => {
   for (const method of ["PUT", "POST", "DELETE"]) {
     for (const status of [200, 202, 204, 205]) {

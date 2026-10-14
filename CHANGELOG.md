@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+- Reject direct or enveloped null JSON results from ordinary reads and asynchronous polling with a protocol error.
+- Preserve successful empty write responses, asynchronous acceptance and valid empty read lists.
+- Add connection and request-handler regressions for null reads and polling results.
+
 ## 1.0.2
 
 - Handle empty successful write responses, including HTTP 204 and asynchronous polling locations, without iterating a null response stream.

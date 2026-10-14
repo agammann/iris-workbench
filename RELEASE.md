@@ -1,3 +1,11 @@
+# Release 1.0.3
+
+This patch rejects direct or enveloped null JSON results from ordinary management reads and asynchronous polling. Workbench returns a protocol error instead of reporting a successful empty result or an unrelated property-access error. Successful empty writes, asynchronous query acceptance and valid empty lists remain supported.
+
+Use the v1.0.3 source ZIP linked from the README. Publication requires the Linux/Windows source-consumer matrix and the pinned live IRIS connection check.
+
+## Historical 1.0.2 delivery
+
 # Release 1.0.2
 
 This patch fixes empty-response validation. Successful writes may return no representation; Workbench preserves their status and polling location without attempting to iterate a null stream. Read and sign-in responses must still contain valid JSON. Sign-in requires nonempty `username` and `serverVersion` strings, and explicit null or empty results cannot create a session or local connection.
