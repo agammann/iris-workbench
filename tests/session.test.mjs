@@ -111,10 +111,14 @@ for (const [description, response] of [
   });
 }
 
-test("a connected live read rejects an empty HTTP 204 response", async (t) => {
+for (const [description, response] of [
+  ["empty HTTP 204 response", () => new Response(null, { status: 204 })],
+  ["null JSON body", () => Response.json(null)],
+  ["null result envelope", () => Response.json({ result: null })],
+]) test(`a connected live read rejects ${description}`, async (t) => {
   t.mock.method(globalThis, "fetch", async (url) => url.pathname === "/api/admin/info"
     ? Response.json(serverInfo)
-    : new Response(null, { status: 204 }));
+    : response());
   const request = await portal(t);
   const login = await request("/api/session", "POST", { user: "operator", password: "fixture-password" });
   assert.equal(login.status, 200);
@@ -170,4 +174,20 @@ test("an empty HTTP 202 query acceptance polls for a completed empty result", as
     { path: "/api/admin/v2/security/audit/records", method: "POST" },
     { path: "/api/admin/v2/async-result", method: "GET" },
   ]);
+});
+
+test("a null polling result is a protocol error rather than a property-access error", async (t) => {
+  t.mock.method(globalThis, "fetch", async (url) => {
+    if (url.pathname === "/api/admin/info") return Response.json(serverInfo);
+    if (url.pathname === "/api/admin/v2/security/audit/records")
+      return new Response(null, { status: 202, headers: { Location: "/api/admin/v2/async-result?id=fixture" } });
+    return Response.json({ result: null });
+  });
+  const request = await portal(t);
+  const login = await request("/api/session", "POST", { user: "operator", password: "fixture-password" });
+  const cookie = login.headers["Set-Cookie"].split(";")[0];
+  const logs = await request("/api/logs", "POST", { source: "audit" }, cookie);
+  assert.equal(logs.status, 502);
+  assert.match(logs.body.error, /null JSON data/);
+  assert.doesNotMatch(logs.body.error, /Cannot read properties|State/);
 });
