@@ -194,6 +194,8 @@ Packaging requires Git and a clean committed source tree. The downloaded source 
 
 ## Demonstration workflow
 
+Watch the [captioned live screencast](https://github.com/agammann/iris-workbench/releases/download/v1.0.3/iris-workbench_1.0.3_screencast.mp4). It records the released v1.0.3 app against a disposable IRIS Community 2026.2 instance: review and apply the `Enabled` change, verify IRIS readback, then check the independent HTTP response. The video is silent with subtitles; its response annotation is a recording aid.
+
 Follow [DEMO.md](DEMO.md) to create a disposable REST service, observe its HTTP 404 while disabled, enable it through the browser review flow, and verify HTTP 200 with a real JSON response. The script refuses to overwrite an existing application and provides an identity checked cleanup command.
 
 For a local live-instance retest, first confirm `/api/admin/info` returns HTTP 200 with JSON instance information, connect to Workbench and select **Live data**, then run this demonstration. It supplies a real application and an observable configuration change beyond the available logs. The demo script supports local IRIS only and requires the installed `Workbench.DemoREST` class plus a configured private credential file; fresh setup supplies both. Follow the [existing-instance demo prerequisites](DEMO.md#use-an-existing-local-instance) if you started with manual sign-in. Use an instance you manage and may create a disposable application on; fictional design sample data does not verify IRIS access.

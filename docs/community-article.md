@@ -6,7 +6,7 @@ A disabled REST service returns HTTP 404. In IRIS Workbench, I select that appli
 {"service":"Workbench demonstration","status":"ready"}
 ```
 
-That is the project's central workflow: inspect a resource, review a specific change, and check the actual result. The [recorded demonstration](https://github.com/agammann/iris-workbench/blob/v1.0.3/evidence/demo-service.json) used a disposable application on a real local IRIS Community 2026.2 instance. The [walkthrough](https://github.com/agammann/iris-workbench/blob/v1.0.3/DEMO.md) makes it repeatable.
+That is the project's central workflow: inspect a resource, review a specific change, and check the actual result. Watch the [2.5-minute captioned screencast](https://github.com/agammann/iris-workbench/releases/download/v1.0.3/iris-workbench_1.0.3_screencast.mp4) of the released 1.0.3 app on a real, disposable IRIS Community 2026.2 instance. The [verification summary](https://github.com/agammann/iris-workbench/blob/808d41c0e3dcab93872d0c6bed4bcaf2d8a7742a/evidence/screencast/qa-summary.json) records the checks; the [walkthrough](https://github.com/agammann/iris-workbench/blob/v1.0.3/DEMO.md) makes it repeatable.
 
 ## Why build another management interface?
 
@@ -29,7 +29,7 @@ A read API explorer exposes documented endpoints. Workspace keeps the current se
 
 Here is the live demonstration's review screen:
 
-![Live demonstration: review Enabled changing from false to true](https://raw.githubusercontent.com/agammann/iris-workbench/v1.0.3/evidence/demo-review.png)
+![Live demonstration: review Enabled changing from false to true](https://raw.githubusercontent.com/agammann/iris-workbench/808d41c0e3dcab93872d0c6bed4bcaf2d8a7742a/evidence/screencast/02-review-enabled-change.png)
 
 *Recorded live-instance demonstration: the proposed change is one field on `/workbench-demo`.*
 
@@ -39,7 +39,7 @@ This is a best effort conflict check. The read and write are not an atomic trans
 
 After applying the change, the result distinguishes an accepted operation from verified field readback:
 
-![Live demonstration: changed fields verified from IRIS](https://raw.githubusercontent.com/agammann/iris-workbench/v1.0.3/evidence/demo-result.png)
+![Live demonstration: changed fields verified from IRIS](https://raw.githubusercontent.com/agammann/iris-workbench/808d41c0e3dcab93872d0c6bed4bcaf2d8a7742a/evidence/screencast/03-verified-change-result.png)
 
 *Recorded live-instance result. The separate HTTP service request confirms the endpoint responds; configuration readback alone does not establish service availability.*
 
