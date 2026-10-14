@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "passed": true,
+  "release": {
+    "version": "1.0.3",
+    "tag": "v1.0.3",
+    "commit": "369a35815dded2c012ea0e753023525035741887"
+  },
+  "guards": {
+    "secretGuardPassed": true,
+    "generatedPasswordAbsent": true,
+    "credentialScreensAbsent": true,
+    "privateStateExcluded": true
+  },
+  "checks": {
+    "pageIdentity": true,
+    "nonblank": true,
+    "noFrameworkOverlay": true,
+    "consoleErrors": 0,
+    "consoleWarnings": 0,
+    "pageErrors": 0,
+    "initialServiceStatus": 404,
+    "finalServiceStatus": 200,
+    "reviewEnabled": {
+      "before": false,
+      "proposed": true
+    },
+    "after": {
+      "Enabled": true,
+      "DispatchClass": "Workbench.DemoREST"
+    },
+    "independentService": {
+      "service": "Workbench demonstration",
+      "status": "ready"
+    }
+  },
+  "video": {
+    "filename": "iris-workbench_1.0.3_screencast.mp4",
+    "sha256": "1e7d2d917e6fbdaae2ec1ef030e2fbc57f3d780b46e97ed732a8dc49f72b1805",
+    "durationSeconds": 149.96
+  },
+  "files": [
+    {
+      "name": "01-disabled-application.png",
+      "sha256": "e6055d50500804fbc7bbf3f7c8eabea5e7edc83423e4948f1b730fb4f2c030e0",
+      "bytes": 128815
+    },
+    {
+      "name": "02-review-enabled-change.png",
+      "sha256": "14d8e5d5cd4fb725c155d9d011fb42eccb3f8e49690a47e32b6853bde8dfedae",
+      "bytes": 119362
+    },
+    {
+      "name": "03-verified-change-result.png",
+      "sha256": "3b6a170e1cfb75a70c7972e158e98512471d70975523d0fbb3aa695f133821ba",
+      "bytes": 103916
+    },
+    {
+      "name": "04-independent-service-http-200.png",
+      "sha256": "060b31aec4f4ed87ee425b76dd0f434fc2704250c2ee61b74b1a9442833bca2f",
+      "bytes": 30887
+    },
+    {
+      "name": "05-live-system-capacity.png",
+      "sha256": "62e8912e6dab851b307938b2a2a0979a600333cb0f50c899130fa3343f737941",
+      "bytes": 102107
+    },
+    {
+      "name": "06-session-change-history.png",
+      "sha256": "a4af27ae25b2557e5a51a4297652e04acdfc087c9da93b279693f43fa6374aab",
+      "bytes": 120783
+    },
+    {
+      "name": "captions.srt",
+      "sha256": "77bc5697e9338c6cc114c1a8519049c3ce1f8bd09319f6d66369dc959cb7de62",
+      "bytes": 1478
+    },
+    {
+      "name": "captions.vtt",
+      "sha256": "8fe39bfdd604c05e206fc20110576267551ef1265f6c08480fe3dba3b78cb3f6",
+      "bytes": 1456
+    },
+    {
+      "name": "iris-workbench_1.0.3_screencast.mp4",
+      "sha256": "1e7d2d917e6fbdaae2ec1ef030e2fbc57f3d780b46e97ed732a8dc49f72b1805",
+      "bytes": 6316117
+    },
+    {
+      "name": "recording-summary.txt",
+      "sha256": "e9acaeea917a28911934acfe82718c9950451368db5738219d066c49ddd9781b",
+      "bytes": 1097
+    },
+    {
+      "name": "storyboard.txt",
+      "sha256": "94dcbb8b6c69cc87a026e481a8d67734d585412971a7b9e8b7f22263c80bcf57",
+      "bytes": 1633
+    }
+  ]
+}
