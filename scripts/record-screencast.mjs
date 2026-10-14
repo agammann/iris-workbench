@@ -148,7 +148,6 @@ try {
   stage = "record the real released frontend";
   context = await browser.newContext({
     ...appearance, storageState,
-    httpCredentials: { username: credentials.user, password: credentials.password, origin: instance.origin },
     recordVideo: { dir: privateVideo, size: appearance.viewport },
   });
   await context.addInitScript(({ secrets }) => {
@@ -252,18 +251,49 @@ try {
   await expect(enabledStatus).toHaveText("Enabled");
   await scene("Refresh and inspect: the live application configuration is now Enabled.", 9);
 
-  stage = "verify the independent service responds with actual HTTP 200 JSON";
+  stage = "open the independent service with explicitly scoped browser authentication";
   const serviceGapStart = Date.now() - recordedAt;
   const serviceRecordedAt = Date.now();
   const servicePage = await context.newPage();
   monitor(servicePage);
   const serviceVideo = servicePage.video();
-  const service = await servicePage.goto(new URL("/workbench-demo/status", instance).href);
+  const serviceURL = new URL("/workbench-demo/status", instance).href;
+  // IRIS may return its HTML login page without a WWW-Authenticate challenge.
+  // Send Basic only to this exact real service URL; never replace its response.
+  await servicePage.route((url) => url.href === serviceURL, (route) => route.continue({
+    headers: { ...route.request().headers(), authorization },
+  }));
+  const service = await servicePage.goto(serviceURL);
+  stage = "verify the independent browser service HTTP status";
+  check(service);
+  const serviceIsJSON = (service.headers()["content-type"] || "").includes("application/json");
+  console.log(`Independent service check: HTTP ${service.status()}; JSON content type: ${serviceIsJSON}.`);
   check(service.status() === 200);
-  check((service.headers()["content-type"] || "").includes("application/json"));
+  stage = "verify the independent browser service JSON content type";
+  check(serviceIsJSON);
+  stage = "verify the actual independent service JSON result";
   const result = await service.json();
   check(result.service === "Workbench demonstration" && result.status === "ready");
+  stage = "verify the independent service renders its actual JSON";
   await expect(servicePage.locator("body")).toContainText("Workbench demonstration");
+  stage = "initialize and check the native JSON document privacy guard";
+  // Chromium's native JSON document may skip context initialization scripts.
+  // Seed the same continuous guard before this response enters the public clip.
+  check(await servicePage.evaluate(({ secrets }) => {
+    let guard = window.__workbenchVideoSecretGuard;
+    const scan = () => {
+      const text = document.body?.innerText || "";
+      if (secrets.some((secret) => text.includes(secret))) guard.leaked = true;
+    };
+    if (!guard) {
+      guard = { leaked: false };
+      Object.defineProperty(window, "__workbenchVideoSecretGuard", { value: guard });
+      new MutationObserver(scan).observe(document, { childList: true, subtree: true, characterData: true });
+    }
+    scan();
+    return guard.leaked === false;
+  }, { secrets: [credentials.password, authorization.slice(6)] }));
+  stage = "format the labelled independent-response recording annotation";
   // Format only this independent response for readability in the video. This
   // explicitly labelled annotation is outside the released Workbench UI.
   await servicePage.addStyleTag({ content: "body { padding: 48px; background: #f6f8f7; color: #182522; } pre { white-space: pre-wrap; font: 26px/1.65 ui-monospace, monospace; } #screencast-service-note { margin: 0 0 32px; font: 20px/1.6 sans-serif; } #screencast-service-note small { display: block; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: #557065; }" });
@@ -279,6 +309,7 @@ try {
   });
   const serviceVisibleAt = Date.now() - serviceRecordedAt;
   const serviceSceneIndex = scenes.length;
+  stage = "capture the privacy-checked independent service clip";
   await scene("Independent request to IRIS: HTTP 200. The real demonstration service returns ready.", 13, servicePage);
   await screenshot("04-independent-service-http-200.png", servicePage);
   const serviceCompleteAt = Date.now() - serviceRecordedAt;

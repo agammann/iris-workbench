@@ -2,6 +2,10 @@ name: Record IRIS Workbench live screencast
 on:
   push:
     branches: [codex/intersystems-campaign]
+    paths:
+      - .github/workflows/screencast.yml
+      - scripts/record-screencast.mjs
+      - scripts/publish-screencast.mjs
   workflow_dispatch:
 permissions:
   contents: read
