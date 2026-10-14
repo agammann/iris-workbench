@@ -1,0 +1,114 @@
+name: Record IRIS Workbench live screencast
+on:
+  push:
+    branches: [codex/intersystems-campaign]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: iris-workbench-screencast-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      IRIS_CONTAINER: iris-workbench-screencast-${{ github.run_id }}-${{ github.run_attempt }}
+      IRIS_PORT: '52783'
+      WORKBENCH_APP_ROOT: ${{ github.workspace }}/released-app
+      WORKBENCH_DISPOSABLE_INSTANCE: '1'
+    steps:
+      - name: Check out recording automation
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: campaign
+          persist-credentials: false
+      - name: Check out the exact published v1.0.3 source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 369a35815dded2c012ea0e753023525035741887
+          path: released-app
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - run: npm install --global pnpm@11.19.0
+      - run: pnpm install --frozen-lockfile
+        working-directory: released-app
+      - run: node scripts/fetch-spec.mjs
+        working-directory: released-app
+      - run: pnpm build
+        working-directory: released-app
+      - name: Install temporary browser tooling and Chromium
+        env:
+          WORKBENCH_PLAYWRIGHT_DIR: ${{ runner.temp }}/workbench-screencast-tools
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/workbench-screencast-browsers
+        run: |
+          npm install --prefix "$WORKBENCH_PLAYWRIGHT_DIR" --no-package-lock --ignore-scripts @playwright/test@1.56.1
+          node "$WORKBENCH_PLAYWRIGHT_DIR/node_modules/playwright/cli.js" --version
+          node "$WORKBENCH_PLAYWRIGHT_DIR/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Install the video encoder
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+      - name: Initialize only this recording's pinned disposable IRIS instance
+        env:
+          WORKBENCH_STATE_DIR: ${{ runner.temp }}/iris-workbench-screencast-${{ github.run_id }}-${{ github.run_attempt }}
+        run: node scripts/setup-local.mjs
+        working-directory: released-app
+      - name: Record and verify the actual released browser flow
+        env:
+          WORKBENCH_STATE_DIR: ${{ runner.temp }}/iris-workbench-screencast-${{ github.run_id }}-${{ github.run_attempt }}
+          WORKBENCH_SCREENCAST_DIR: ${{ runner.temp }}/workbench-screencast-output
+          WORKBENCH_PLAYWRIGHT_DIR: ${{ runner.temp }}/workbench-screencast-tools
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/workbench-screencast-browsers
+        run: node campaign/scripts/record-screencast.mjs
+      - name: Upload only the verified sanitized recording
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: iris-workbench-v1.0.3-live-screencast
+          path: |
+            ${{ runner.temp }}/workbench-screencast-output/*.mp4
+            ${{ runner.temp }}/workbench-screencast-output/*.png
+            ${{ runner.temp }}/workbench-screencast-output/captions.srt
+            ${{ runner.temp }}/workbench-screencast-output/captions.vtt
+            ${{ runner.temp }}/workbench-screencast-output/recording-summary.txt
+            ${{ runner.temp }}/workbench-screencast-output/storyboard.txt
+            ${{ runner.temp }}/workbench-screencast-output/qa-summary.json
+            ${{ runner.temp }}/workbench-screencast-output/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
+      - name: Remove only this recording's owned container and private temporary state
+        if: always()
+        env:
+          WORKBENCH_STATE_DIR: ${{ runner.temp }}/iris-workbench-screencast-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          docker rm --force "$IRIS_CONTAINER" > /dev/null 2>&1 || true
+          rm -rf -- "$WORKBENCH_STATE_DIR" "$RUNNER_TEMP/workbench-screencast-tools" "$RUNNER_TEMP/workbench-screencast-browsers"
+  publish-screencast:
+    needs: record
+    if: github.repository == 'agammann/iris-workbench' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the same reviewed recording automation
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: campaign
+          persist-credentials: false
+      - name: Download only this run's verified capture
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: iris-workbench-v1.0.3-live-screencast
+          path: ${{ runner.temp }}/workbench-screencast-artifact
+      - name: Publish the video and sanitized evidence without changing the source release
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          WORKBENCH_SCREENCAST_DIR: ${{ runner.temp }}/workbench-screencast-artifact
+        with:
+          script: |
+            const { default: publish } = await import(process.env.GITHUB_WORKSPACE + '/campaign/scripts/publish-screencast.mjs');
+            await publish({ github, context, core });
