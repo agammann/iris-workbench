@@ -1,9 +1,9 @@
-import fs from "node:fs";
 import path from "node:path";
 import net from "node:net";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { readConnection } from "../server/private-state.mjs";
 
 // Exercise the real setup/start path against a disposable IRIS instance. Keep
 // credentials in setup's private files and never print server logs or responses.
@@ -29,7 +29,7 @@ function check(condition, message) {
 try {
   check(directory, "Pass the private state directory created by setup-local.mjs.");
   const state = path.resolve(directory);
-  const config = JSON.parse(fs.readFileSync(path.join(state, "connection.json"), "utf8"));
+  const config = readConnection(state);
   const iris = new URL(config.IRIS_URL);
   check(
     iris.protocol === "http:" && ["127.0.0.1", "localhost"].includes(iris.hostname),

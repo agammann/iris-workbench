@@ -1,3 +1,13 @@
+# Release 1.0.4
+
+This patch reserves private setup state before Docker starts and publishes complete credentials and connection information exclusively. Existing final files are never overwritten. Windows state directories use a protected DACL for the current account, SYSTEM and Administrators; POSIX directories require current ownership and mode 0700. Partial setup retains recovery credentials and omits the final connection file until every verification succeeds.
+
+Credential and connection reads are bounded regular-file descriptor reads. Explicit existing-instance credential paths remain supported, with their directory permissions under the operator's control. These controls do not isolate hostile processes running as the same account.
+
+Use the v1.0.4 source ZIP linked from the README. Publication requires the Linux/Windows source-consumer matrix and the pinned live IRIS connection check. Historical screencast media continues to identify the released v1.0.3 source.
+
+## Historical 1.0.3 delivery
+
 # Release 1.0.3
 
 This patch rejects direct or enveloped null JSON results from ordinary management reads and asynchronous polling. Workbench returns a protocol error instead of reporting a successful empty result or an unrelated property-access error. Successful empty writes, asynchronous query acceptance and valid empty lists remain supported.

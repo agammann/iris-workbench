@@ -1,6 +1,10 @@
 # Operations, upgrade and recovery
 
-Use this portal as a local operator for one configured IRIS instance. Keep Node bound to loopback. Start an existing local configuration with `node scripts/start-local.mjs "C:/your/private/workbench-state"`; its connection file points to the credential file created by setup. Never move the private state directory into the repository, source ZIP, a public share or a support attachment. On Windows, restrict access using the directory's Windows permissions; POSIX mode arguments do not configure Windows ACLs for you.
+Use this portal as a local operator for one configured IRIS instance. Keep Node bound to loopback. Start an existing local configuration with `node scripts/start-local.mjs "C:/your/private/workbench-state"`; its connection file points to the credential file created by setup. Never move the private state directory into the repository, source ZIP, a public share or a support attachment.
+
+Setup protects a newly created Windows state directory with a non-inherited DACL allowing only your account, SYSTEM and Administrators. Existing state directories must already have those permissions and be owned by your account; setup and restart reject unsafe permissions rather than silently changing them. Use Windows Security settings to repair an older directory, or choose a new private directory. On POSIX, the state directory must be owned by your account with mode 0700. Links and junctions cannot be used as the state directory. Setup uses exclusive hard-link publication and requires a filesystem that supports hard links.
+
+Explicit `IRIS_CREDENTIALS_FILE` paths for an existing instance remain supported. Credential and connection JSON must be regular files of at most 64 KiB. Reads use one bounded file descriptor; permissions on an explicitly supplied credential directory remain the operator's responsibility. These controls do not isolate state from a hostile process running as the same account.
 
 ## Stop and restart
 
@@ -52,7 +56,9 @@ For durable data beyond a disposable quick start, configure IRIS storage accordi
 
 ## Failed or partial setup
 
-Missing Docker, a non-Linux daemon, invalid name/port and an existing named container stop setup. Existing credentials are not replaced. If setup fails after creating its new container, it can leave that container and generated private files for diagnosis. A second invocation refuses to reuse them. Read the error, inspect only the exact container name you selected and preserve any needed data before removal. Choose a new unique container name, unused port and empty private state directory for another clean attempt; never delete an unrelated container to make setup pass.
+Missing Docker, a non-Linux daemon, invalid name/port and an existing named container stop setup. Existing credentials and connection information are not replaced. Setup reserves private staging before starting Docker and publishes complete credentials before changing the account, so later failures retain the recovery credential. The final connection file is published only after authentication, installation and log verification pass. A failed setup can leave its container and complete credentials for diagnosis; a second invocation refuses to reuse them. Read the error, inspect only the exact container name you selected and preserve any needed data before removal. Choose a new unique container name, unused port and empty private state directory for another clean attempt; never delete an unrelated container to make setup pass.
+
+Concurrent setup is rejected by `.setup-lock`. Normal exit removes only that invocation's staging and reservation. If setup is interrupted abruptly, inspect the selected container, final credentials and any `.setup-*` staging before manually removing a stale lock or private staging. Do not remove another running setup's reservation. Setup never removes an existing final credential or connection file as cleanup.
 
 If `server/spec.json` is absent, rerun `node scripts/fetch-spec.mjs`; the download must match the pinned SHA256. A checksum mismatch stops before replacing the cache. If an instance is unavailable, restart that owned instance or correct the port and reconnect. The portal reports upstream failures; they are not evidence that a review was applied. If permission is denied, use an identity with the intended IRIS permission instead of broadening the portal's own access.
 

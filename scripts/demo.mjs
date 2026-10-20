@@ -1,9 +1,8 @@
-import fs from "node:fs";
-import path from "node:path";
+import { readConnection, readPrivateJson } from "../server/private-state.mjs";
 const action = process.argv[2] || "check";
 const stateDir = process.argv[3];
 const connection = stateDir
-  ? JSON.parse(fs.readFileSync(path.join(stateDir, "connection.json"), "utf8"))
+  ? readConnection(stateDir)
   : process.env;
 const instance = new URL(connection.IRIS_URL || "http://127.0.0.1:52773");
 if (!["127.0.0.1", "localhost", "[::1]"].includes(instance.hostname))
@@ -78,9 +77,7 @@ if (action === "setup") {
     throw Error(
       "Supply the private state directory or IRIS_CREDENTIALS_FILE to check the actual endpoint",
     );
-  const c = JSON.parse(
-    fs.readFileSync(connection.IRIS_CREDENTIALS_FILE, "utf8"),
-  );
+  const c = readPrivateJson(connection.IRIS_CREDENTIALS_FILE);
   const r = await fetch(new URL("/workbench-demo/status", instance), {
     headers: {
       Authorization:

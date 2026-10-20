@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 import { Readable } from "node:stream";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 // Exercise the actual request handler with controlled upstream responses.
 // No listening socket or live IRIS instance is used by these fixtures.
@@ -57,6 +60,49 @@ test("sign-in preserves an empty upstream 401 and creates no session", async (t)
 });
 
 const serverInfo = { username: "operator", serverVersion: "IRIS 2026.2", apiVersion: 2 };
+
+test("configured sign-in reads a regular explicit credential file through the real handler", async (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "workbench-configured-"));
+  const filename = path.join(directory, "custom credentials.json");
+  fs.writeFileSync(filename, JSON.stringify({ user: "operator", password: "controlled-configured-password" }));
+  const previous = process.env.IRIS_CREDENTIALS_FILE;
+  process.env.IRIS_CREDENTIALS_FILE = filename;
+  t.after(() => {
+    if (previous === undefined) delete process.env.IRIS_CREDENTIALS_FILE;
+    else process.env.IRIS_CREDENTIALS_FILE = previous;
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+  t.mock.method(globalThis, "fetch", async (_url, options) => {
+    assert.equal(new Headers(options.headers).get("Authorization"), "Basic " + Buffer.from("operator:controlled-configured-password").toString("base64"));
+    return Response.json(serverInfo);
+  });
+  const request = await portal(t);
+  const result = await request("/api/session", "POST", { configured: true });
+  assert.equal(result.status, 200);
+  assert.equal(result.body.connected, true);
+  assert.equal(result.body.user, "operator");
+  assert.equal(result.body.password, undefined);
+});
+
+test("configured sign-in rejects an oversized credential file before contacting IRIS", async (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "workbench-configured-"));
+  const filename = path.join(directory, "credentials.json");
+  fs.writeFileSync(filename, " ".repeat(65537));
+  const previous = process.env.IRIS_CREDENTIALS_FILE;
+  process.env.IRIS_CREDENTIALS_FILE = filename;
+  t.after(() => {
+    if (previous === undefined) delete process.env.IRIS_CREDENTIALS_FILE;
+    else process.env.IRIS_CREDENTIALS_FILE = previous;
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+  t.mock.method(globalThis, "fetch", () => { throw Error("Oversized credentials must not reach the upstream"); });
+  const request = await portal(t);
+  const result = await request("/api/session", "POST", { configured: true });
+  assert.equal(result.status, 400);
+  assert.match(result.body.error, /size limit/);
+  assert.equal(result.headers["Set-Cookie"], undefined);
+  assert.equal((await request("/api/session", "GET")).body.connected, false);
+});
 
 for (const [shape, body] of [["direct", serverInfo], ["enveloped", { result: serverInfo }]]) {
   test(`a valid ${shape} login establishes a session and live reads retain upstream rejection status`, async (t) => {
