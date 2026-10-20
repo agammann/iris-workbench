@@ -3,7 +3,8 @@ import net from "node:net";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { readConnection } from "../server/private-state.mjs";
+import { readConnection, readPrivateJson } from "../server/private-state.mjs";
+import { verifiedDemoService } from "./verify-demo-service.mjs";
 
 // Exercise the real setup/start path against a disposable IRIS instance. Keep
 // credentials in setup's private files and never print server logs or responses.
@@ -127,6 +128,49 @@ try {
   const applicationNames = new Set(applications.data.data.map((application) => application.Name));
   check(applicationNames.has("/api/admin") && applicationNames.has("/api/workbench"), "The management API and installed extension were not listed.");
 
+  stage = "verify the exact disposable demonstration response";
+  const demoPath = "/v2/web-app?name=%2Fworkbench-demo";
+  status(await request("/api/read", "POST", { path: demoPath }, cookie), 404);
+  let demoCreated = false;
+  try {
+    const creation = await request("/api/prepare", "POST", {
+      path: demoPath, method: "PUT", label: "Create disposable demonstration",
+      payload: {
+        NameSpace: "%SYS", Enabled: false, AutheEnabled: 32,
+        DispatchClass: "Workbench.DemoREST", Description: "Disposable IRIS Workbench demonstration",
+        Resource: "%Admin_Operate",
+      },
+    }, cookie);
+    status(creation, 200);
+    status(await request("/api/apply", "POST", { id: creation.data.id }, cookie), 200);
+    demoCreated = true;
+    const enable = await request("/api/prepare", "POST", {
+      path: demoPath, method: "PUT", readPath: demoPath,
+      payload: { Enabled: true }, label: "Enable disposable demonstration",
+    }, cookie);
+    status(enable, 200);
+    status(await request("/api/apply", "POST", { id: enable.data.id }, cookie), 200);
+    const credentials = readPrivateJson(config.IRIS_CREDENTIALS_FILE);
+    const response = await fetch(new URL("/workbench-demo/status", iris), {
+      headers: { Authorization: "Basic " + Buffer.from(credentials.user + ":" + credentials.password).toString("base64") },
+      redirect: "error",
+      signal: AbortSignal.any([AbortSignal.timeout(10000), interrupted.signal]),
+    });
+    check(response.status === 200 && (response.headers.get("content-type") || "").includes("application/json"), "Disposable demonstration did not return JSON over HTTP 200.");
+    verifiedDemoService(await response.text());
+  } finally {
+    if (demoCreated) {
+      stage = "remove the disposable demonstration";
+      const deletion = await request("/api/prepare", "POST", {
+        path: demoPath, method: "DELETE", readPath: demoPath,
+        label: "Remove disposable demonstration",
+      }, cookie);
+      status(deletion, 200);
+      status(await request("/api/apply", "POST", { id: deletion.data.id }, cookie), 200);
+      status(await request("/api/read", "POST", { path: demoPath }, cookie), 404);
+    }
+  }
+
   stage = "read real runtime message logs";
   const logs = await request("/api/logs", "POST", { source: "messages" }, cookie);
   status(logs, 200);
@@ -140,7 +184,7 @@ try {
   status(disconnected, 200);
   check(disconnected.data.connected === false, "Sign-out left the session connected.");
   status(await request("/api/schema", "GET", undefined, cookie), 401);
-  console.log("Verified local IRIS: authentication rejection, configured sign-in, session cookie, schema, admin read, runtime message logs, and sign-out.");
+  console.log("Verified local IRIS: authentication rejection, configured sign-in, session cookie, schema, admin read, exact disposable demo response, runtime message logs, and sign-out.");
 } catch {
   // Only emit the fixed stage name. Upstream bodies and private state can carry
   // credentials or instance details, so they must stay out of CI logs.
