@@ -1,3 +1,9 @@
+# Release 1.0.5
+
+This source release carries strict verification of the disposable demonstration service response before any included screencast clip, screenshot or QA summary is assembled. The QA summary stores only the fixed values already checked against the live instance. Disposable IRIS CI creates, enables, checks and removes the demonstration service without recording or publishing a video.
+
+The local operator portal and the private-state protections from 1.0.4 are unchanged. Use the v1.0.5 source ZIP linked from the README. The Linux and Windows source-consumer checks and the pinned live IRIS check gate publication. Historical screencast media still identifies the v1.0.3 source; it was not rerun for this release.
+
 # Release 1.0.4
 
 This patch reserves private setup state before Docker starts and publishes complete credentials and connection information exclusively. Existing final files are never overwritten. Windows state directories use a protected DACL for the current account, SYSTEM and Administrators; POSIX directories require current ownership and mode 0700. Partial setup retains recovery credentials and omits the final connection file until every verification succeeds.
