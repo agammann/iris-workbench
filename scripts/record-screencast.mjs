@@ -5,6 +5,7 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { readConnection, readPrivateJson } from "../server/private-state.mjs";
+import { verifiedDemoService } from "./verify-demo-service.mjs";
 
 // Browser plugin not available: use a temporary Playwright installation. The
 // released app stays unchanged, and recording begins after configured UI login.
@@ -272,9 +273,8 @@ try {
   check(service.status() === 200);
   stage = "verify the independent browser service JSON content type";
   check(serviceIsJSON);
-  stage = "verify the actual independent service JSON result";
-  const result = await service.json();
-  check(result.service === "Workbench demonstration" && result.status === "ready");
+  stage = "verify the exact independent service response";
+  const result = verifiedDemoService(await service.text());
   stage = "verify the independent service renders its actual JSON";
   await expect(servicePage.locator("body")).toContainText("Workbench demonstration");
   stage = "initialize and check the native JSON document privacy guard";

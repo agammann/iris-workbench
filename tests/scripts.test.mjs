@@ -5,12 +5,24 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { verifiedDemoService } from "../scripts/verify-demo-service.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // Controlled HTTP and Docker fixtures exercise the real setup subprocess. They
 // do not claim to verify authentication against a live IRIS instance.
 const serverInfo = { username: "_SYSTEM", serverVersion: "IRIS 2026.2", apiVersion: 2 };
+
+test("screencast accepts only the pinned disposable service response", () => {
+  const expected = '{"service":"Workbench demonstration","status":"ready"}';
+  assert.deepEqual(verifiedDemoService(expected), { service: "Workbench demonstration", status: "ready" });
+  for (const body of [
+    '{"service":"Workbench demonstration","status":"ready","private":"unexpected"}',
+    '{"service":"Workbench demonstration","status":"ready","status":"ready"}',
+    '{"service":"Workbench demonstration","status":"ready"}\n',
+    '{"service":"Workbench demonstration","status":"pending"}',
+  ]) assert.throws(() => verifiedDemoService(body), /differs from the pinned demonstration/);
+});
 
 function setupFixture(adminResponse = { status: 200, body: serverInfo }) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "workbench-setup-"));
