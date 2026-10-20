@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.5
+
+- Require the pinned disposable demonstration service's exact response before recording it or saving screencast QA evidence.
+- Store only checked demonstration facts in QA, and verify the real service response and cleanup in disposable IRIS CI.
+- Retain the 1.0.4 private-state protections and local operator behavior.
+
 ## 1.0.4
 
 - Reserve private setup state before starting Docker and publish complete credentials and connection files without replacing existing entries.
