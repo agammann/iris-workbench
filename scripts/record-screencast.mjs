@@ -4,6 +4,7 @@ import net from "node:net";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
+import { readConnection, readPrivateJson } from "../server/private-state.mjs";
 
 // Browser plugin not available: use a temporary Playwright installation. The
 // released app stays unchanged, and recording begins after configured UI login.
@@ -76,11 +77,11 @@ try {
   check(/^iris-workbench-screencast-\d+-\d+$/.test(process.env.IRIS_CONTAINER || ""));
   check(JSON.parse(fs.readFileSync(path.join(app, "package.json"), "utf8")).version === version);
   check(await sourceCommit() === releaseCommit);
-  const config = JSON.parse(fs.readFileSync(path.join(state, "connection.json"), "utf8"));
+  const config = readConnection(state);
   const instance = new URL(config.IRIS_URL);
   check(instance.protocol === "http:" && instance.hostname === "127.0.0.1");
   check(path.resolve(config.IRIS_CREDENTIALS_FILE) === path.join(state, "credentials.json"));
-  const credentials = JSON.parse(fs.readFileSync(config.IRIS_CREDENTIALS_FILE, "utf8"));
+  const credentials = readPrivateJson(config.IRIS_CREDENTIALS_FILE);
   check(credentials.user === "_SYSTEM" && typeof credentials.password === "string" && credentials.password.length >= 40);
   const authorization = "Basic " + Buffer.from(credentials.user + ":" + credentials.password).toString("base64");
   const privateVideo = path.join(state, "private-video");

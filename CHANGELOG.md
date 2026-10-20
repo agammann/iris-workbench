@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.4
+
+- Reserve private setup state before starting Docker and publish complete credentials and connection files without replacing existing entries.
+- Enforce private state directory permissions on Windows and POSIX, preserve recovery credentials after partial setup, and reject concurrent setup reservations.
+- Read credential and connection JSON through bounded regular-file descriptors across startup, configured sign-in and local verification tools.
+- Add setup, permission, publication and concurrent-file regressions while preserving manual sign-in and explicit existing-instance credential paths.
+
 ## 1.0.3
 
 - Reject direct or enveloped null JSON results from ordinary reads and asynchronous polling with a protocol error.

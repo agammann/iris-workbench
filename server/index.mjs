@@ -9,6 +9,7 @@ import {
   safePath,
 } from "./security.mjs";
 import { adminRequest, irisOrigin } from "./connection.mjs";
+import { readPrivateJson } from "./private-state.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const spec = JSON.parse(
   fs.readFileSync(path.join(root, "server/spec.json"), "utf8"),
@@ -229,9 +230,7 @@ const server = http.createServer(async (req, res) => {
       if (input.configured) {
         if (!process.env.IRIS_CREDENTIALS_FILE)
           throw Error("No local credential file configured");
-        c = JSON.parse(
-          fs.readFileSync(process.env.IRIS_CREDENTIALS_FILE, "utf8"),
-        );
+        c = readPrivateJson(process.env.IRIS_CREDENTIALS_FILE);
       }
       if (!c.user || !c.password) throw Error("Enter a username and password");
       const info = await iris(c, "/info");
