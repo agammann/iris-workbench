@@ -167,26 +167,8 @@ export default async function publishScreencast({ github, context, core }) {
       check(asset.browser_download_url === `https://github.com/${owner}/${repo}/releases/download/${tag}/${videoName}`, "Media download URL is unexpected");
       return asset;
     }
-    stage = "append the verified MP4 without overwriting release assets";
-    let media = matchingVideo(release.assets);
-    let reused = Boolean(media);
-    if (!media) {
-      try {
-        media = (await github.rest.repos.uploadReleaseAsset({
-          owner, repo, release_id: release.id, name: videoName,
-          label: `IRIS Workbench ${version}: verified live screencast (silent, captioned)`,
-          data: files.get(videoName), headers: { "content-type": "video/mp4", "content-length": files.get(videoName).length },
-        })).data;
-      } catch (error) {
-        if (error?.status !== 422) throw error;
-        const latest = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
-        media = matchingVideo(latest.assets);
-        check(media, "Concurrent media upload did not produce the verified asset");
-        reused = true;
-      }
-      // GitHub's digest and download URL must confirm exactly the uploaded bytes.
-      matchingVideo([media]);
-    }
+    stage = "check for an existing verified MP4 before writing evidence";
+    matchingVideo(release.assets);
 
     stage = "save sanitized screenshot and QA evidence on a unique branch";
     const evidenceBranch = `codex/screencast-evidence-${runId}-${attempt}`;
@@ -225,13 +207,41 @@ export default async function publishScreencast({ github, context, core }) {
       }
     }
 
-    stage = "verify source metadata and assets remained unchanged";
-    await assertTag();
-    const published = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
-    check(releaseIdentity(published) === originalRelease, "Published source release metadata changed during media publication");
-    for (const [id, identity] of originalAssets)
-      check(published.assets.some((asset) => asset.id === id && assetIdentity(asset) === identity), "An existing release asset changed during media publication");
-    media = matchingVideo(published.assets);
+    async function verifySourceRelease() {
+      await assertTag();
+      const published = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
+      check(releaseIdentity(published) === originalRelease, "Published source release metadata changed during media publication");
+      for (const [id, identity] of originalAssets)
+        check(published.assets.some((asset) => asset.id === id && assetIdentity(asset) === identity), "An existing release asset changed during media publication");
+      return published;
+    }
+    stage = "verify source metadata and assets remained unchanged before media upload";
+    const published = await verifySourceRelease();
+    // Complete evidence writes and source checks before the immutable media
+    // upload. A failure above must leave a new capture safe to record and retry.
+    stage = "append the verified MP4 without overwriting release assets";
+    let media = matchingVideo(published.assets);
+    let reused = Boolean(media);
+    if (!media) {
+      try {
+        media = (await github.rest.repos.uploadReleaseAsset({
+          owner, repo, release_id: release.id, name: videoName,
+          label: `IRIS Workbench ${version}: verified live screencast (silent, captioned)`,
+          data: files.get(videoName), headers: { "content-type": "video/mp4", "content-length": files.get(videoName).length },
+        })).data;
+      } catch (error) {
+        if (error?.status !== 422) throw error;
+        const latest = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
+        media = matchingVideo(latest.assets);
+        check(media, "Concurrent media upload did not produce the verified asset");
+        reused = true;
+      }
+      // Retries can reuse only these exact capture bytes.
+      matchingVideo([media]);
+    }
+    stage = "verify source metadata and assets remained unchanged after media publication";
+    const finalRelease = await verifySourceRelease();
+    media = matchingVideo(finalRelease.assets);
     check(media, "Verified media asset is absent after publication");
     const publication = {
       schemaVersion: 1,
