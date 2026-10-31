@@ -33,7 +33,7 @@ try {
   const config = readConnection(state);
   const iris = new URL(config.IRIS_URL);
   check(
-    iris.protocol === "http:" && ["127.0.0.1", "localhost"].includes(iris.hostname),
+    iris.protocol === "http:" && iris.hostname === "127.0.0.1",
     "This check requires the local IRIS instance created by setup-local.mjs.",
   );
 
@@ -104,7 +104,8 @@ try {
   check((await request("/api/session")).data.connected === false, "Rejected sign-in left a connected session.");
 
   stage = "sign in with the generated credentials through the configured backend";
-  const login = await request("/api/session", "POST", { configured: true });
+  const configuredPassword = readPrivateJson(config.IRIS_CREDENTIALS_FILE).password;
+  const login = await request("/api/session", "POST", { configured: true, password: configuredPassword });
   status(login, 200);
   check(login.data.connected === true && login.data.configured === true, "Configured sign-in did not connect.");
   check(login.data.user === "_SYSTEM" && login.data.instance === iris.host, "Configured sign-in used a different account or instance.");

@@ -8,7 +8,7 @@ Built for the [InterSystems management portal contest](https://community.intersy
 
 ![IRIS Workbench selected design implemented as an interactive app](evidence/design-final.png)
 
-Version 1.0.5. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
+Version 1.0.6. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
 
 ## What works
 
@@ -30,23 +30,23 @@ Creating a fresh local instance, or using the Docker extension installer, also r
 
 ## Get the versioned source
 
-Download `iris-workbench_1.0.5_source.zip` and `SHA256SUMS` from the [v1.0.5 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.5). This version includes the private setup-state protections from 1.0.4 and checks the disposable demonstration response exactly before recording or saving QA evidence. Earlier source ZIPs do not contain the recording guard. In PowerShell, check the ZIP before extracting:
+Download `iris-workbench_1.0.6_source.zip` and `SHA256SUMS` from the [v1.0.6 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.6). This version includes the private setup-state protections from 1.0.4 and checks the disposable demonstration response exactly before recording or saving QA evidence. Earlier source ZIPs do not contain the recording guard. In PowerShell, check the ZIP before extracting:
 
 ```powershell
-Get-FileHash .\iris-workbench_1.0.5_source.zip -Algorithm SHA256
+Get-FileHash .\iris-workbench_1.0.6_source.zip -Algorithm SHA256
 Get-Content .\SHA256SUMS
-Expand-Archive .\iris-workbench_1.0.5_source.zip -DestinationPath .\iris-workbench-v1.0.5
-Set-Location .\iris-workbench-v1.0.5\iris-workbench-1.0.5
+Expand-Archive .\iris-workbench_1.0.6_source.zip -DestinationPath .\iris-workbench-v1.0.6
+Set-Location .\iris-workbench-v1.0.6\iris-workbench-1.0.6
 npm install --global pnpm@11.19.0
 node --version
 pnpm --version
 ```
 
-On Linux, compare `sha256sum iris-workbench_1.0.5_source.zip` with `SHA256SUMS`; on macOS use `shasum -a 256 iris-workbench_1.0.5_source.zip`. After the hash matches:
+On Linux, compare `sha256sum iris-workbench_1.0.6_source.zip` with `SHA256SUMS`; on macOS use `shasum -a 256 iris-workbench_1.0.6_source.zip`. After the hash matches:
 
 ```bash
-unzip iris-workbench_1.0.5_source.zip -d iris-workbench-v1.0.5
-cd iris-workbench-v1.0.5/iris-workbench-1.0.5
+unzip iris-workbench_1.0.6_source.zip -d iris-workbench-v1.0.6
+cd iris-workbench-v1.0.6/iris-workbench-1.0.6
 npm install --global pnpm@11.19.0
 node --version
 pnpm --version
@@ -84,7 +84,7 @@ export IRIS_URL='http://127.0.0.1:52773'
 node server/index.mjs
 ```
 
-Set `IRIS_URL` to the origin of that web server, including its web port: for example `http://127.0.0.1:52773` or `https://iris.example.com`. Do not append `/api/admin`, `/csp/sys` or another path, and do not use the IRIS superserver port (commonly 1972). Workbench adds the API paths itself. Set the environment variables in the same terminal **before** starting Node; restart the backend after changing them.
+Set `IRIS_URL` to the origin of that web server, including its web port: for example `http://127.0.0.1:52773` or `https://iris.example.com`. Plain HTTP is limited to numeric loopback addresses (`127.0.0.1` or `[::1]`); use a numeric address instead of `localhost` for a local HTTP instance. Do not append `/api/admin`, `/csp/sys` or another path, and do not use the IRIS superserver port (commonly 1972). Workbench adds the API paths itself. Set the environment variables in the same terminal **before** starting Node; restart the backend after changing them.
 
 Open [IRIS Workbench](http://127.0.0.1:3411). Enter an existing IRIS username and password in the connection form. The password remains in server memory for a one hour session and is never returned to the client. Sign out to remove the session. For a remote instance use HTTPS; the server rejects remote plaintext connections.
 
@@ -140,7 +140,7 @@ node scripts/setup-local.mjs
 node scripts/start-local.mjs "$env:WORKBENCH_STATE_DIR"
 ```
 
-Setup creates a new Community container, generates a random local administrator credential, verifies authenticated access to `/api/admin/info`, installs the extension, and verifies a runtime log read. The generated credential is stored only in your private state directory. The database itself stays inside this new container; the state directory is connection information, not a database backup. The portal offers **Connect local instance** for this configuration. Do not include that directory in source control, archives or support reports.
+Setup creates a new Community container, generates a random local administrator credential, verifies authenticated access to `/api/admin/info`, installs the extension, and verifies a runtime log read. The generated credential is stored only in your private state directory. The database itself stays inside this new container; the state directory is connection information, not a database backup. To use **Connect local instance**, enter the password from `credentials.json` in the private state directory you selected. Open that file only in a private context; do not print, share, or include it in source control, archives or support reports. Configured sign-in limits failed attempts and requires this password each time a new session is created.
 
 On macOS or Linux:
 

@@ -44,7 +44,7 @@ export function App() {
       const values = e ? Object.fromEntries(new FormData(e.target)) : {};
       const s = await api(
         "session",
-        configured ? { configured: true } : values,
+        configured ? { configured: true, password: values.password } : values,
       );
       setSession(s);
       setSchema(await api("schema"));
@@ -205,15 +205,17 @@ export function App() {
               <>
                 <p className="muted">
                   A local connection is configured for {session.instance}.
-                  Credentials stay on this server.
+                  Enter the account password from your private credential file.
                 </p>
-                <Button
-                  primary
-                  disabled={busy}
-                  onClick={() => connect(null, true)}
-                >
-                  {busy ? "Connecting…" : "Connect local instance"}
-                </Button>
+                <form onSubmit={(e) => connect(e, true)}>
+                  <label className="field">
+                    Configured account password
+                    <input name="password" type="password" autoComplete="current-password" required />
+                  </label>
+                  <Button primary disabled={busy} type="submit">
+                    {busy ? "Connecting…" : "Connect local instance"}
+                  </Button>
+                </form>
                 <Button onClick={() => setConnection(true)}>
                   Use another account
                 </Button>
