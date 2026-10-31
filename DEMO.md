@@ -1,6 +1,6 @@
 # Demonstration: bring a local service online
 
-This is a real local IRIS workflow. The service is deliberately disposable, and sample design mode is not used. The demo script accepts only a local IRIS address (`127.0.0.1`, `localhost` or `::1`) and a local Workbench backend.
+This is a real local IRIS workflow. The service is deliberately disposable, and sample design mode is not used. The demo script accepts only numeric loopback IRIS and Workbench addresses (`127.0.0.1` or `[::1]`).
 
 ## Prepare
 

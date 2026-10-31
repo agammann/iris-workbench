@@ -19,6 +19,16 @@ test("IRIS_URL rejects silently discarded paths and invalid connection origins",
   assert.equal(irisOrigin("http://[::1]:52773").origin, "http://[::1]:52773");
 });
 
+test("plaintext transport accepts only numeric loopback origins before credentials can be sent", () => {
+  for (const value of ["http://iris:52773", "http://localhost:52773", "http://localhost.:52773", "http://192.0.2.1:52773"]) {
+    assert.throws(() => irisOrigin(value), /require HTTPS/);
+  }
+  for (const value of ["http://127.0.0.1:52773", "http://127.1:52773", "http://[::1]:52773"]) {
+    assert.equal(irisOrigin(value).protocol, "http:");
+  }
+  assert.equal(irisOrigin("https://iris.example:52773").protocol, "https:");
+});
+
 test("sign-in checks the actual admin endpoint with Basic auth and rejects redirects", async (t) => {
   const info = { username: "operator", serverVersion: "IRIS 2026.2", apiVersion: 2 };
   t.mock.method(globalThis, "fetch", async (url, options) => {

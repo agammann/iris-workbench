@@ -2,7 +2,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import {
   redact,
   fingerprint,
@@ -22,6 +22,32 @@ const upstream = irisOrigin(process.env.IRIS_URL || "http://127.0.0.1:52773");
 const port = Number(process.env.PORT || 3411),
   sessions = new Map(),
   pending = new Map();
+const configuredAttempts = [];
+function configuredCredentials(input) {
+  const now = Date.now();
+  while (configuredAttempts.length && configuredAttempts[0] <= now - 60_000)
+    configuredAttempts.shift();
+  if (configuredAttempts.length >= 5)
+    throw Object.assign(Error("Too many configured sign-in attempts. Wait a minute and retry."), { status: 429 });
+  configuredAttempts.push(now);
+  let credential;
+  try {
+    if (!process.env.IRIS_CREDENTIALS_FILE || typeof input.password !== "string" ||
+        !input.password || Buffer.byteLength(input.password, "utf8") > 65536)
+      throw Error("Missing proof");
+    credential = readPrivateJson(process.env.IRIS_CREDENTIALS_FILE);
+    if (typeof credential.user !== "string" || !credential.user ||
+        typeof credential.password !== "string" || !credential.password)
+      throw Error("Invalid credentials");
+    const digest = (value) => createHash("sha256").update(value, "utf8").digest();
+    if (!timingSafeEqual(digest(input.password), digest(credential.password)))
+      throw Error("Invalid proof");
+  } catch {
+    throw Object.assign(Error("Configured sign-in failed. Check the password and private credential file."), { status: 401 });
+  }
+  configuredAttempts.length = 0;
+  return credential;
+}
 const allowedOrigins = new Set([
   `http://127.0.0.1:${port}`,
   `http://localhost:${port}`,
@@ -228,9 +254,7 @@ const server = http.createServer(async (req, res) => {
       const input = await body(req);
       let c = input;
       if (input.configured) {
-        if (!process.env.IRIS_CREDENTIALS_FILE)
-          throw Error("No local credential file configured");
-        c = readPrivateJson(process.env.IRIS_CREDENTIALS_FILE);
+        c = configuredCredentials(input);
       }
       if (!c.user || !c.password) throw Error("Enter a username and password");
       const info = await iris(c, "/info");

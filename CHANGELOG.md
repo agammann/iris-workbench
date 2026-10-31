@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.6
+
+- Require operator confirmation when starting a configured session and restrict plaintext connections to numeric loopback.
+- Preserve manual sign-in and existing private connection files, with updated local recovery guidance.
+
 ## 1.0.5
 
 - Require the pinned disposable demonstration service's exact response before recording it or saving screencast QA evidence.

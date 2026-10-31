@@ -1,5 +1,9 @@
 import { errorsOf, messageOf } from "./security.mjs";
 
+export function isLiteralLoopback(hostname) {
+  return ["127.0.0.1", "[::1]"].includes(hostname);
+}
+
 export function irisOrigin(value) {
   const upstream = new URL(value);
   if (
@@ -13,7 +17,7 @@ export function irisOrigin(value) {
     throw Error("IRIS_URL must be an HTTP(S) origin without credentials, a path, query or fragment. Use the IRIS web port; do not append /api/admin.");
   if (
     upstream.protocol === "http:" &&
-    !["localhost", "127.0.0.1", "[::1]", "iris"].includes(upstream.hostname)
+    !isLiteralLoopback(upstream.hostname)
   )
     throw Error("Remote IRIS connections require HTTPS");
   return upstream;

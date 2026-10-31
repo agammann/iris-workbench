@@ -1,15 +1,17 @@
 import { readConnection, readPrivateJson } from "../server/private-state.mjs";
+import { irisOrigin, isLiteralLoopback } from "../server/connection.mjs";
 const action = process.argv[2] || "check";
 const stateDir = process.argv[3];
 const connection = stateDir
   ? readConnection(stateDir)
   : process.env;
-const instance = new URL(connection.IRIS_URL || "http://127.0.0.1:52773");
-if (!["127.0.0.1", "localhost", "[::1]"].includes(instance.hostname))
+const instance = irisOrigin(connection.IRIS_URL || "http://127.0.0.1:52773");
+if (!isLiteralLoopback(instance.hostname))
   throw Error("Demo operations are limited to a local IRIS instance");
-const portal = process.env.WORKBENCH_URL || "http://127.0.0.1:3411";
-if (!["127.0.0.1", "localhost", "[::1]"].includes(new URL(portal).hostname))
+const portalUrl = irisOrigin(process.env.WORKBENCH_URL || "http://127.0.0.1:3411");
+if (!isLiteralLoopback(portalUrl.hostname))
   throw Error("Demo portal must be local");
+const portal = portalUrl.origin;
 let cookie = "";
 async function api(endpoint, body) {
   const r = await fetch(portal + "/api/" + endpoint, {
@@ -39,7 +41,10 @@ async function change(method, payload) {
 }
 if (!["setup", "check", "cleanup"].includes(action))
   throw Error("Use setup, check or cleanup");
-await api("session", { configured: true });
+if (!connection.IRIS_CREDENTIALS_FILE)
+  throw Error("Supply the private state directory or IRIS_CREDENTIALS_FILE to run the demonstration");
+const credentials = readPrivateJson(connection.IRIS_CREDENTIALS_FILE);
+await api("session", { configured: true, password: credentials.password });
 const p = "/v2/web-app?name=%2Fworkbench-demo";
 let existing;
 try {
@@ -73,15 +78,10 @@ if (action === "setup") {
     console.log((await change("DELETE")).verification);
   }
 } else {
-  if (!connection.IRIS_CREDENTIALS_FILE)
-    throw Error(
-      "Supply the private state directory or IRIS_CREDENTIALS_FILE to check the actual endpoint",
-    );
-  const c = readPrivateJson(connection.IRIS_CREDENTIALS_FILE);
   const r = await fetch(new URL("/workbench-demo/status", instance), {
     headers: {
       Authorization:
-        "Basic " + Buffer.from(c.user + ":" + c.password).toString("base64"),
+        "Basic " + Buffer.from(credentials.user + ":" + credentials.password).toString("base64"),
     },
     redirect: "error",
     signal: AbortSignal.timeout(10000),
