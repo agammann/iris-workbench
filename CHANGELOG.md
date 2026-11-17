@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.7
+
+- Identify fictional-only static previews explicitly, show their design sample without a bootstrap error, and omit IRIS credential forms and live management controls in that mode.
+- Reject static credential and management requests without reading their bodies or forwarding them to assets. Preserve the independent local Node connection and permission checks.
+- Patch Vite to 6.4.6 for the upstream exposed-development-server advisory while preserving loopback defaults.
+- Correct current release/setup descriptions and repository instructions. Publication remains held by the required picomatch audit until a supported patched version is available.
+
 ## 1.0.6
 
 - Require operator confirmation when starting a configured session and restrict plaintext connections to numeric loopback.

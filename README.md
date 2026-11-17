@@ -2,13 +2,13 @@
 
 A local management portal for InterSystems IRIS. Inspect applications, follow events, review a change, and verify the result from the instance.
 
-Run the Node backend on your own computer to connect to IRIS. A hosted preview shows the fictional design sample; it cannot connect to your instance or perform live management operations.
+Run the Node backend on your own computer to connect to IRIS. A static preview build shows the fictional design sample; it cannot accept IRIS credentials, connect to your instance or perform live management operations.
 
 Built for the [InterSystems management portal contest](https://community.intersystems.com/post/intersystems-programming-contest-build-your-own-management-portal). Read the [project idea](IDEA.md), [demonstration](DEMO.md), [log coverage](LOGS.md), [verification record](VERIFICATION.md), and [design QA](design-qa.md).
 
 ![IRIS Workbench selected design implemented as an interactive app](evidence/design-final.png)
 
-Version 1.0.6. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
+Version 1.0.7 candidate (unpublished; see [release status](RELEASE.md)). The latest published source is 1.0.6. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
 
 ## What works
 
@@ -30,7 +30,7 @@ Creating a fresh local instance, or using the Docker extension installer, also r
 
 ## Get the versioned source
 
-Download `iris-workbench_1.0.6_source.zip` and `SHA256SUMS` from the [v1.0.6 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.6). This version includes the private setup-state protections from 1.0.4 and checks the disposable demonstration response exactly before recording or saving QA evidence. Earlier source ZIPs do not contain the recording guard. In PowerShell, check the ZIP before extracting:
+Download the published `iris-workbench_1.0.6_source.zip` and `SHA256SUMS` from the [v1.0.6 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.6). This version includes the private setup-state protections from 1.0.4, the recording guard from 1.0.5 and configured sign-in protections from 1.0.6. Source ZIPs before 1.0.5 do not contain the recording guard. The 1.0.7 candidate is not yet available as a release. In PowerShell, check the ZIP before extracting:
 
 ```powershell
 Get-FileHash .\iris-workbench_1.0.6_source.zip -Algorithm SHA256

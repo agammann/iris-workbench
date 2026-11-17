@@ -3,6 +3,34 @@ import { access } from "node:fs/promises";
 import test from "node:test";
 import worker from "../worker/index.js";
 
+test("static preview explicitly reports its fictional-only capability", async () => {
+  let calls = 0;
+  const response = await worker.fetch(new Request("https://example.test/api/session"), {
+    ASSETS: { fetch: async () => { calls++; return new Response("Not found", { status: 404 }); } },
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { connected: false, configured: false, sampleOnly: true });
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(calls, 0);
+});
+
+test("static preview never accepts credentials or management writes", async () => {
+  for (const [path, method, status] of [
+    ["session", "POST", 405], ["session", "DELETE", 405],
+    ["prepare", "POST", 404], ["apply", "POST", 404],
+  ]) {
+    let calls = 0;
+    const request = new Request("https://example.test/api/" + path, { method, body: "fictional-private-input" });
+    const response = await worker.fetch(request, {
+      ASSETS: { fetch: async () => { calls++; return new Response("Not found", { status: 404 }); } },
+    });
+    assert.equal(response.status, status);
+    assert.match((await response.json()).error, /static preview/i);
+    assert.equal(request.bodyUsed, false);
+    assert.equal(calls, 0);
+  }
+});
+
 test("serves existing static assets without a fallback", async () => {
   const calls = [];
   const response = await worker.fetch(new Request("https://example.test/assets/app.js"), {
@@ -42,9 +70,9 @@ test("falls back to index.html for an unknown app route", async () => {
 });
 
 test("does not turn missing API or write requests into the app shell", async () => {
-  for (const request of [
-    new Request("https://example.test/api/missing", { headers: { accept: "application/json" } }),
-    new Request("https://example.test/flow", { method: "POST", headers: { accept: "text/html" } }),
+  for (const [request, expectedCalls] of [
+    [new Request("https://example.test/api/missing", { headers: { accept: "application/json" } }), 0],
+    [new Request("https://example.test/flow", { method: "POST", headers: { accept: "text/html" } }), 1],
   ]) {
     let calls = 0;
     const response = await worker.fetch(request, {
@@ -57,7 +85,7 @@ test("does not turn missing API or write requests into the app shell", async () 
     });
 
     assert.equal(response.status, 404);
-    assert.equal(calls, 1);
+    assert.equal(calls, expectedCalls);
   }
 });
 
