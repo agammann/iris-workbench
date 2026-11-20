@@ -2,7 +2,7 @@
 
 This candidate repairs the static preview's session bootstrap and makes its fictional-only capability explicit. Static builds do not show IRIS sign-in forms or live management controls and cannot submit credentials or changes. The independent local Node portal and its IRIS permission checks are preserved. Vite is patched to 6.4.6 for the upstream development-server advisory.
 
-The candidate is unpublished. The existing full dependency audit still reports GHSA-fc5q-39xc-vjpf in picomatch 4.0.7, with no supported patched version published at this review. Keep the required audit and live/source-consumer gates intact; do not merge, publish or deploy around them. The latest published source remains 1.0.6. No exact public static Site identity is established by this source snapshot, and no replacement target is proposed.
+The candidate is unpublished. The November 19 full dependency audit reported zero advisories after GitHub withdrew the Picomatch advisory. Release review still requires the project's audit, live verification and source-consumer checks. The latest published source is 1.0.6. The candidate's static Site identity remains unverified. [Advisory record](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
 
 The public [Open Exchange listing](https://openexchange.intersystems.com/package/IRIS-Workbench) was checked on November 17, 2026: its catalog metadata lists 1.0.5 while its embedded README refers to 1.0.6, and it links this project's demonstration. It is a listing, not a live frontend; use the versioned GitHub source instructions above for the published archive. The older pending-submission narrative below is historical; no new listing version or contest submission was made for this candidate.
 
