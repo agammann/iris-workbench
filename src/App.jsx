@@ -38,6 +38,7 @@ export function App() {
   }, []);
   async function connect(e, configured = false) {
     e?.preventDefault();
+    if (!canConnect) return;
     setBusy(true);
     setError(null);
     try {
@@ -70,7 +71,10 @@ export function App() {
     setSearch("");
   }
   const [heading, subtitle] = titles[section];
-  const ready = session?.connected;
+  const sampleOnly = session?.sampleOnly === true;
+  const showSample = sampleOnly || sample;
+  const canConnect = Boolean(session) && !sampleOnly;
+  const ready = !sampleOnly && session?.connected;
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -107,17 +111,17 @@ export function App() {
             hour12: false,
           })}
         </time>
-        <button className="account" onClick={() => setConnection(true)}>
+        <button className="account" disabled={!canConnect} onClick={() => setConnection(true)}>
           <span>{session?.user?.[0] || "U"}</span>
-          {session?.user || "Connect"}
+          {sampleOnly ? "Static preview" : session?.user || "Connect"}
           <IconChevronDown size={15} />
         </button>
       </header>
       <div className="contextbar">
-        <button className="instance" onClick={() => setConnection(true)}>
+        <button className="instance" disabled={!canConnect} onClick={() => setConnection(true)}>
           <IconDatabase size={20} />
-          {sample
-            ? "Local IRIS / USER"
+          {showSample
+            ? sampleOnly ? "Fictional IRIS sample" : "Local IRIS / USER"
             : ready
               ? "IRIS / " + session.instance
               : "IRIS connection"}
@@ -125,14 +129,16 @@ export function App() {
         </button>
         <select
           aria-label="Data mode"
-          value={sample ? "sample" : "live"}
+          value={showSample ? "sample" : "live"}
+          disabled={sampleOnly}
           onChange={(e) => {
+            if (sampleOnly) return;
             setSample(e.target.value === "sample");
             setSection("Logs");
             setFocus("");
           }}
         >
-          <option value="live">{ready ? "Live data" : "Disconnected"}</option>
+          {!sampleOnly && <option value="live">{ready ? "Live data" : "Disconnected"}</option>}
           <option value="sample">Design sample</option>
         </select>
         <div className="global-search">
@@ -161,16 +167,23 @@ export function App() {
           )}
         </div>
       </div>
-      {ready || sample ? (
+      {ready || showSample ? (
         <>
           <div className="content-heading">
             <h1>{heading}</h1>
             <p>{subtitle}</p>
           </div>
           <main className="workspace">
-            {section === "Logs" ? (
+            {sampleOnly && section !== "Logs" ? (
+              <div className="workspace-main">
+                <h2>Live management runs locally</h2>
+                <p>This static preview contains fictional log events. It cannot connect to IRIS, accept credentials, or apply management changes.</p>
+                <p>Run the local Node portal with an instance you manage to use this area.</p>
+                <Button onClick={() => navigate("Logs")}>View the design sample</Button>
+              </div>
+            ) : section === "Logs" ? (
               <Logs
-                sample={sample}
+                sample={showSample}
                 onNavigate={navigate}
                 initialFilter={focus}
                 initialSource={logSource}
@@ -221,7 +234,7 @@ export function App() {
                 </Button>
               </>
             ) : (
-              <Button primary onClick={() => setConnection(true)}>
+              <Button primary disabled={!canConnect} onClick={() => setConnection(true)}>
                 Connect to IRIS
               </Button>
             )}
@@ -244,7 +257,7 @@ export function App() {
       )}
       <footer className="statusbar">
         <span>
-          {sample
+          {showSample
             ? "Design study / Sample data"
             : ready
               ? `Connected as ${session.user}`
@@ -252,14 +265,14 @@ export function App() {
         </span>
         <span>
           <IconInfoCircle size={19} />
-          {sample
+          {showSample
             ? "No live instance data shown"
             : ready
               ? "Changes require review before applying"
               : "Credentials stay on your local server"}
         </span>
       </footer>
-      {connection && (
+      {connection && canConnect && (
         <Modal
           title={ready ? "Your connection" : "Connect to IRIS"}
           onClose={() => setConnection(false)}
