@@ -1,5 +1,11 @@
 # Verification record
 
+## November 24, 2026 container pin refresh
+
+The vendor registry could no longer resolve the September digest. Its official `2026.2` tag resolved to the replacement image index `sha256:46aa3c430d4bdf9742ba4fde33b17dbbc76a73a41f6efd10594118eaab63ff14`. The index lists Linux amd64 and arm64. The amd64 image pulled by digest and reported IRIS Community `2026.2.0.221.0com`, the same build as the previous pin.
+
+A frozen install with pnpm 11.19.0, the production build, 88 Node tests and six static Worker tests passed on Windows. Setup and live verification against the disposable amd64 container passed, including authentication rejection, configured sign-in, session cookie, schema and admin reads, an exact demo response and cleanup, runtime logs and sign-out. No arm64 runtime was tested.
+
 ## November 17, 2026 candidate review
 
 The starting source was `ff76e4225d1b7581c574883ff5c5fdfc46957336`. A frozen installation and the actual checksum-pinned schema download passed on Windows with Node 24.22.1 and pnpm 11.19.0. Separately, the actual published 1.0.6 source ZIP and its three companion assets were verified against the release, manifest and all 99 raw source files. Its fresh extracted consumer built and passed 88 Node tests and four static packaging tests; those older tests did not cover the static session bootstrap.

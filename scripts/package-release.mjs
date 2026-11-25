@@ -10,7 +10,7 @@ const version=metadata.version;
 if(metadata.name!=='iris-workbench'||metadata.license!=='MIT'||!/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.test(version))throw Error('Expected stable IRIS Workbench version and MIT metadata.');
 const commit=git(['rev-parse','HEAD']),tree=git(['rev-parse','HEAD^{tree}']);
 if(process.env.GITHUB_SHA&&process.env.GITHUB_SHA!==commit)throw Error('Checkout differs from the workflow commit.');
-const image='containers.intersystems.com/intersystems/iris-community@sha256:87c8b9062530093d30384d66caa9933b8399bfbace7ddb7f1bdb983c0bfdb85b';
+const image='containers.intersystems.com/intersystems/iris-community@sha256:46aa3c430d4bdf9742ba4fde33b17dbbc76a73a41f6efd10594118eaab63ff14';
 const specification={repository:'intersystems-community/sysadmin-api-specification',commit:'f764aea427e5c0b1dd08a4c18a0457e0ff7b3b34',path:'mainspec_v2.json',sha256:'1ab154c7c5d9b25e6b227944a44a120c670686f876c2e14abfb9ee5898596650'};
 if(!readFileSync('scripts/setup-local.mjs','utf8').includes(image)||!readFileSync('scripts/fetch-spec.mjs','utf8').includes(specification.sha256)||!readFileSync('scripts/fetch-spec.mjs','utf8').includes(specification.commit))throw Error('Manifest upstream inputs differ from the setup scripts.');
 const directory=resolve('release-artifacts');mkdirSync(directory,{recursive:true});

@@ -20,7 +20,7 @@ if (
 )
   throw Error("Invalid container name or port");
 const image =
-  "containers.intersystems.com/intersystems/iris-community@sha256:87c8b9062530093d30384d66caa9933b8399bfbace7ddb7f1bdb983c0bfdb85b";
+  "containers.intersystems.com/intersystems/iris-community@sha256:46aa3c430d4bdf9742ba4fde33b17dbbc76a73a41f6efd10594118eaab63ff14";
 const run = (args, input) => {
   const r = spawnSync("docker", args, { input, encoding: "utf8" });
   if (r.error) throw Error("Could not start Docker: " + r.error.message);
