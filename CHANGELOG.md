@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.8
+
+- Restore fresh local setup with the verified InterSystems IRIS Community 2026.2 Build 221 image digest. The source manifest records the same pin.
+- Update the versioned source download and checksum instructions.
+
 ## 1.0.7
 
 - Identify fictional-only static previews explicitly, show their design sample without a bootstrap error, and omit IRIS credential forms and live management controls in that mode.

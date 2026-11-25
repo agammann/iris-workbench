@@ -1,10 +1,14 @@
-# Candidate 1.0.7
+# Release 1.0.8
 
-This candidate repairs the static preview's session bootstrap and makes its fictional-only capability explicit. Static builds do not show IRIS sign-in forms or live management controls and cannot submit credentials or changes. The independent local Node portal and its IRIS permission checks are preserved. Vite is patched to 6.4.6 for the upstream development-server advisory.
+Fresh local setup uses the verified InterSystems IRIS Community 2026.2 Build 221 image digest. The previous pin could no longer be pulled by CI. Linux amd64 live verification exercised fresh setup, configured sign-in, authenticated reads, runtime logs and sign-out. The [v1.0.8 source archive](https://github.com/agammann/iris-workbench/releases/tag/v1.0.8) records the new pin in its manifest. Follow the [upgrade and recovery instructions](README.md#upgrade-recovery-and-support) to reuse a configured instance.
 
-The candidate is unpublished. The November 19 full dependency audit reported zero advisories after GitHub withdrew the Picomatch advisory. Release review still requires the project's audit, live verification and source-consumer checks. The latest published source is 1.0.6. The candidate's static Site identity remains unverified. [Advisory record](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
+## Historical 1.0.7 delivery
 
-The public [Open Exchange listing](https://openexchange.intersystems.com/package/IRIS-Workbench) was checked on November 17, 2026: its catalog metadata lists 1.0.5 while its embedded README refers to 1.0.6, and it links this project's demonstration. It is a listing, not a live frontend; use the versioned GitHub source instructions above for the published archive. The older pending-submission narrative below is historical; no new listing version or contest submission was made for this candidate.
+[Release 1.0.7](https://github.com/agammann/iris-workbench/releases/tag/v1.0.7) repaired the static preview's session bootstrap and made its fictional-only capability explicit. Static builds with that change omit IRIS sign-in forms and live management controls. The release patched Vite to 6.4.6 for the upstream development-server advisory.
+
+The November 19 full dependency audit reported zero advisories after GitHub withdrew the Picomatch advisory. The static Site identity was unverified. [Advisory record](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
+
+The [Open Exchange listing](https://openexchange.intersystems.com/package/IRIS-Workbench) showed version 1.0.5 in its catalog metadata and 1.0.6 in its embedded README when checked on November 17, 2026. It links to the project demonstration. The versioned downloads are on GitHub.
 
 ## Historical 1.0.6 delivery
 
