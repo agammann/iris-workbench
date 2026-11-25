@@ -8,7 +8,7 @@ Built for the [InterSystems management portal contest](https://community.intersy
 
 ![IRIS Workbench selected design implemented as an interactive app](evidence/design-final.png)
 
-Version 1.0.7 candidate (unpublished; see [release status](RELEASE.md)). The latest published source is 1.0.6. [MIT licensed](LICENSE). This is an independent community project, not an official InterSystems product.
+Version 1.0.8. See the [release notes](RELEASE.md). This independent community project is [MIT licensed](LICENSE).
 
 ## What works
 
@@ -30,23 +30,23 @@ Creating a fresh local instance, or using the Docker extension installer, also r
 
 ## Get the versioned source
 
-Download the published `iris-workbench_1.0.6_source.zip` and `SHA256SUMS` from the [v1.0.6 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.6). This version includes the private setup-state protections from 1.0.4, the recording guard from 1.0.5 and configured sign-in protections from 1.0.6. Source ZIPs before 1.0.5 do not contain the recording guard. The 1.0.7 candidate is not yet available as a release. In PowerShell, check the ZIP before extracting:
+Download `iris-workbench_1.0.8_source.zip` and `SHA256SUMS` from the [v1.0.8 release](https://github.com/agammann/iris-workbench/releases/tag/v1.0.8). Use this release for fresh local setup with the verified IRIS Community 2026.2 image pin. In PowerShell, check the ZIP before extracting:
 
 ```powershell
-Get-FileHash .\iris-workbench_1.0.6_source.zip -Algorithm SHA256
+Get-FileHash .\iris-workbench_1.0.8_source.zip -Algorithm SHA256
 Get-Content .\SHA256SUMS
-Expand-Archive .\iris-workbench_1.0.6_source.zip -DestinationPath .\iris-workbench-v1.0.6
-Set-Location .\iris-workbench-v1.0.6\iris-workbench-1.0.6
+Expand-Archive .\iris-workbench_1.0.8_source.zip -DestinationPath .\iris-workbench-v1.0.8
+Set-Location .\iris-workbench-v1.0.8\iris-workbench-1.0.8
 npm install --global pnpm@11.19.0
 node --version
 pnpm --version
 ```
 
-On Linux, compare `sha256sum iris-workbench_1.0.6_source.zip` with `SHA256SUMS`; on macOS use `shasum -a 256 iris-workbench_1.0.6_source.zip`. After the hash matches:
+On Linux, compare `sha256sum iris-workbench_1.0.8_source.zip` with `SHA256SUMS`. On macOS, use `shasum -a 256 iris-workbench_1.0.8_source.zip`. After the hash matches:
 
 ```bash
-unzip iris-workbench_1.0.6_source.zip -d iris-workbench-v1.0.6
-cd iris-workbench-v1.0.6/iris-workbench-1.0.6
+unzip iris-workbench_1.0.8_source.zip -d iris-workbench-v1.0.8
+cd iris-workbench-v1.0.8/iris-workbench-1.0.8
 npm install --global pnpm@11.19.0
 node --version
 pnpm --version
